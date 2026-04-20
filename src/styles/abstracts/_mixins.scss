@@ -1,0 +1,71 @@
+@use "sass:list";
+
+// @use "abstracts/mixins" as m;
+
+/// Reset default list styles
+/// usage
+/// @include m.listReset;
+
+@mixin listReset {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+/// Min width media query
+/// usage
+/// @include m.minMediaQuery(768px) {
+///   // styles
+/// }
+
+@mixin minMediaQuery($width) {
+  @media (min-width: $width) {
+    @content;
+  }
+}
+
+/// Max width media query
+/// usage
+/// @include m.maxMediaQuery(767px) {
+///   // styles
+/// }
+
+@mixin maxMediaQuery($width) {
+  @media (max-width: $width) {
+    @content;
+  }
+}
+
+/// Hover styles only for devices with hover support
+/// usage
+/// @include m.hover {
+///   color: red;
+/// }
+
+@mixin hover {
+  @media (hover: hover) and (pointer: fine) {
+    &:hover {
+      @content;
+    }
+  }
+}
+
+/// Transition css properties
+/// usage
+/// @include m.transition(color);
+/// @include m.transition(color, 1s, ease-in);
+/// @include m.transition(color background);
+/// @include m.transition(color background transform, 0.3s, ease);
+
+@mixin transition(
+  $properties,
+  $duration: var(--base-transition-duration),
+  $easing: var(--base-transition-timing-function)
+) {
+  $list: ();
+  @each $prop in $properties {
+    $str: #{$prop} #{$duration} #{$easing};
+    $list: list.join($list, #{$str}, comma);
+  }
+  transition: $list;
+}

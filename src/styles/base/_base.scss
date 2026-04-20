@@ -1,0 +1,119 @@
+@use "abstracts/mixins" as m;
+
+html {
+  box-sizing: border-box;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: inherit;
+}
+
+body {
+  min-width: 360px;
+  font-family: var(--base-font-family);
+  font-size: var(--base-font-size);
+  line-height: var(--base-line-height);
+  font-weight: var(--base-font-weight);
+  color: var(--color-black);
+  background: var(--color-white);
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+ul,
+ol,
+p {
+  margin: 0 0 var(--base-margin-bottom);
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: var(--heading-font-family);
+  line-height: var(--heading-line-height);
+  font-weight: var(--heading-font-weight);
+}
+
+h1 {
+  font-size: var(--h1-font-size);
+}
+
+h2 {
+  font-size: var(--h2-font-size);
+}
+
+h3 {
+  font-size: var(--h3-font-size);
+}
+
+h4 {
+  font-size: var(--h4-font-size);
+}
+
+h5 {
+  font-size: var(--h5-font-size);
+}
+
+h6 {
+  font-size: var(--h6-font-size);
+}
+
+ul:not([class]):not([id]) {
+  @include m.listReset;
+
+  li {
+    position: relative;
+    padding-left: 15px;
+    margin-bottom: 5px;
+
+    &::before {
+      content: "";
+      width: 5px;
+      height: 5px;
+      position: absolute;
+      top: 8px;
+      left: 0;
+      border-radius: 50%;
+      background: var(--color-black);
+    }
+  }
+}
+
+figure {
+  margin: 0;
+}
+
+img {
+  max-width: 100%;
+  height: auto;
+}
+
+a {
+  @include m.transition(color);
+  color: var(--link-color);
+  text-decoration: var(--link-text-decoration);
+
+  @include m.hover {
+    color: var(--link-hover-color);
+  }
+}
+
+.wrapper {
+  position: relative;
+  overflow: hidden;
+}
+
+.container {
+  max-width: var(--container-max-width);
+  padding: var(--container-padding);
+  margin: 0 auto;
+}

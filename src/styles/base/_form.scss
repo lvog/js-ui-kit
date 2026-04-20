@@ -1,0 +1,42 @@
+@use "abstracts/mixins" as m;
+
+input[type="text"],
+input[type="tel"],
+input[type="email"],
+input[type="search"],
+input[type="password"],
+textarea {
+  @include m.transition(border-color);
+  appearance: none;
+  width: 100%;
+  height: var(--input-height);
+  color: var(--input-color);
+  padding: var(--input-padding);
+  margin-bottom: var(--base-margin-bottom);
+  border: 1px solid var(--input-border-color);
+
+  &::placeholder {
+    color: var(--input-placeholder-color);
+  }
+
+  &:focus-visible {
+    border-color: var(--input-hover-border-color);
+    outline: none;
+  }
+
+  @include m.hover {
+    border-color: var(--input-hover-border-color);
+  }
+}
+
+textarea {
+  resize: none;
+}
+
+button,
+input[type="button"],
+input[type="reset"],
+input[type="submit"] {
+  appearance: none;
+  cursor: pointer;
+}

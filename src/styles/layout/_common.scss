@@ -1,0 +1,8 @@
+.popup-active {
+  overflow: hidden;
+
+  .popup {
+    opacity: 1;
+    visibility: visible;
+  }
+}
