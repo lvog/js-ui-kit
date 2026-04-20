@@ -1,0 +1,81 @@
+@use "abstracts/mixins" as m;
+
+.carousel {
+  position: relative;
+
+  &-track {
+    display: flex;
+    flex-wrap: nowrap;
+    overflow: hidden;
+  }
+
+  &-slide {
+    min-height: 300px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 50px;
+    background: var(--color-light-gray);
+  }
+
+  &-btn {
+    @include m.transition(color);
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 20px;
+    line-height: 1;
+    padding: 0;
+    color: var(--color-black);
+    background: transparent;
+    border: none;
+
+    @include m.hover {
+      color: var(--color-gray);
+    }
+  }
+
+  &-btn-prev {
+    left: 15px;
+  }
+
+  &-btn-next {
+    right: 15px;
+  }
+
+  &-dots {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    bottom: 10px;
+  }
+
+  &-dot-btn {
+    @include m.transition(background);
+    width: 8px;
+    height: 8px;
+    background: var(--color-black);
+    padding: 0;
+    border-radius: 50%;
+    border: none;
+    margin: 2px;
+
+    &.slide-active {
+      background: var(--color-gray);
+    }
+
+    @include m.hover {
+      background: var(--color-gray);
+    }
+  }
+
+  h3 {
+    &:only-child {
+      margin-bottom: 0;
+    }
+  }
+}
