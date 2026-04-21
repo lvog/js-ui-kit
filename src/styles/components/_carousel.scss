@@ -3,10 +3,43 @@
 .carousel {
   position: relative;
 
+  &.slide {
+    .carousel-track {
+      @include m.transition(
+        var(--carousel-slide-property),
+        var(--carousel-duration),
+        var(--carousel-easing)
+      );
+      overflow: hidden;
+    }
+  }
+
+  &.fade {
+    .carousel-slide {
+      @include m.transition(
+        var(--carousel-fade-property),
+        var(--carousel-duration),
+        var(--carousel-easing)
+      );
+      position: relative;
+      top: 0;
+      left: 0;
+      opacity: 0;
+      z-index: 1;
+
+      &.slide-active {
+        opacity: 1;
+        z-index: 2;
+      }
+    }
+  }
+
   &-track {
     display: flex;
     flex-wrap: nowrap;
-    overflow: hidden;
+    position: relative;
+    top: 0;
+    left: 0;
   }
 
   &-slide {
@@ -29,6 +62,7 @@
     color: var(--color-black);
     background: transparent;
     border: none;
+    z-index: 3;
 
     @include m.hover {
       color: var(--color-gray);
@@ -52,6 +86,7 @@
     left: 50%;
     transform: translateX(-50%);
     bottom: 10px;
+    z-index: 3;
   }
 
   &-dot-btn {

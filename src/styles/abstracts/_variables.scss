@@ -56,4 +56,9 @@ $breakpoint-widescreen: 1200px;
 
   --base-transition-duration: 0.3s;
   --base-transition-timing-function: ease-in-out;
+
+  --carousel-slide-property: transform;
+  --carousel-fade-property: opacity;
+  --carousel-duration: 0.5s;
+  --carousel-easing: var(--base-transition-timing-function);
 }

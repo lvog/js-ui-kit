@@ -9,7 +9,7 @@ class Carousel {
     this.dots = options.dots ?? true;
     this.dotsSelector = options.dotsSelector || ".carousel-dots";
     this.dotBtnSelector = options.dotBtnSelector || ".carousel-dot-btn";
-    this.duration = options.duration || "0.3s";
+    this.mode = options.mode || "slide";
 
     this.activeClass = "slide-active";
 
@@ -34,6 +34,7 @@ class Carousel {
       return;
     }
 
+    this.addMode();
     this.findElements();
 
     if (!this.track) {
@@ -88,23 +89,32 @@ class Carousel {
   bindResize() {
     this.handleResize = this.updateLayout.bind(this);
     window.addEventListener("resize", this.handleResize);
-    console.log(this.dotsHolder);
   }
 
   initState() {
     this.total = this.slides.length;
     this.slides[0].classList.add(this.activeClass);
-    this.track.style.transitionDuration = this.duration;
+  }
+
+  addMode() {
+    this.carousel.classList.add(this.mode);
   }
 
   updateLayout() {
     this.slideWidth = this.carousel.offsetWidth;
-    this.slides.forEach((slide) => {
-      slide.style.width = `${this.slideWidth}px`;
-    });
     this.track.style.width = `${this.slideWidth * this.total}px`;
 
-    this.moveTrack();
+    this.slides.forEach((slide, index) => {
+      slide.style.width = `${this.slideWidth}px`;
+
+      if (this.mode === "fade") {
+        slide.style.left = `-${index * this.slideWidth}px`;
+      }
+    });
+
+    if (this.mode === "slide") {
+      this.moveTrack();
+    }
   }
 
   createArrows() {
@@ -172,9 +182,14 @@ class Carousel {
   }
 
   moveToSlide(index) {
+    if (index < 0 || index >= this.total) return;
+
     this.currentIndex = index;
     this.updateActive();
-    this.moveTrack();
+
+    if (this.mode === "slide") {
+      this.moveTrack();
+    }
   }
 
   moveTrack() {
@@ -198,4 +213,6 @@ class Carousel {
   }
 }
 
-export const carousel = new Carousel();
+export const carousel = new Carousel({
+  mode: "fade",
+});
