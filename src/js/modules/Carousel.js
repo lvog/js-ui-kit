@@ -11,6 +11,7 @@ class Carousel {
     this.dotBtnSelector = options.dotBtnSelector || ".carousel-dot-btn";
     this.mode = options.mode || "slide";
     this.swipeThreshold = options.swipeThreshold || 50;
+    this.infinite = options.infinite ?? false;
 
     this.activeClass = "slide-active";
 
@@ -25,6 +26,7 @@ class Carousel {
     this.prevIndex = 0;
     this.currentIndex = 0;
     this.total = 0;
+    this.isJumping = false;
   }
 
   init() {
@@ -51,12 +53,19 @@ class Carousel {
     }
 
     this.initState();
+    if (this.infinite && this.mode === "slide") {
+      this.cloneSlides();
+    }
     this.updateLayout();
     this.createArrows();
     this.createDots();
     this.bindEvents();
     this.bindSwipe();
     this.bindResize();
+
+    if (this.infinite && this.mode === "slide") {
+      this.bindTransitionEnd();
+    }
   }
 
   findElements() {
@@ -76,7 +85,9 @@ class Carousel {
       const isInteractive = e.target.closest(
         "a, button, input, select, textarea",
       );
+
       if (isInteractive || e.button !== 0) return;
+      if (this.isJumping) return;
 
       isDragging = true;
       isMoved = false;
@@ -101,12 +112,15 @@ class Carousel {
 
       if (this.mode !== "slide") return;
 
-      const isFirst = this.currentIndex === 0;
-      const isLast = this.currentIndex === this.total - 1;
+      if (!this.infinite) {
+        const isFirst = this.currentIndex === 0;
+        const isLast = this.currentIndex === this.total - 1;
 
-      if ((isFirst && diffX > 0) || (isLast && diffX < 0)) return;
+        if ((isFirst && diffX > 0) || (isLast && diffX < 0)) return;
+      }
 
-      const base = this.currentIndex * this.slideWidth;
+      const offset = this.infinite ? 1 : 0;
+      const base = (this.currentIndex + offset) * this.slideWidth;
 
       if (this.track.style.transition !== "none") {
         this.track.style.transition = "none";
@@ -167,12 +181,18 @@ class Carousel {
 
       if (!btnNext && !btnPrev && !dotBtn) return;
 
-      if (btnNext && this.currentIndex < this.total - 1) {
-        this.moveToSlide(this.currentIndex + 1);
+      if (this.isJumping) return;
+
+      if (btnNext) {
+        if (this.infinite || this.currentIndex < this.total - 1) {
+          this.moveToSlide(this.currentIndex + 1);
+        }
       }
 
-      if (btnPrev && this.currentIndex > 0) {
-        this.moveToSlide(this.currentIndex - 1);
+      if (btnPrev) {
+        if (this.infinite || this.currentIndex > 0) {
+          this.moveToSlide(this.currentIndex - 1);
+        }
       }
 
       if (dotBtn) {
@@ -188,6 +208,25 @@ class Carousel {
     window.addEventListener("resize", this.handleResize);
   }
 
+  bindTransitionEnd() {
+    this.handleTransitionEnd = () => {
+      if (!this.isJumping) return;
+
+      this.track.style.transition = "none";
+
+      this.moveTrack();
+
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          this.track.style.transition = "";
+          this.isJumping = false;
+        });
+      });
+    };
+
+    this.track.addEventListener("transitionend", this.handleTransitionEnd);
+  }
+
   initState() {
     this.total = this.slides.length;
     this.slides[0].classList.add(this.activeClass);
@@ -199,9 +238,15 @@ class Carousel {
 
   updateLayout() {
     this.slideWidth = this.carousel.offsetWidth;
-    this.track.style.width = `${this.slideWidth * this.total}px`;
 
-    this.slides.forEach((slide, index) => {
+    const totalSlides =
+      this.infinite && this.mode === "slide" ? this.total + 2 : this.total;
+
+    this.track.style.width = `${this.slideWidth * totalSlides}px`;
+
+    const allSlides = this.track.querySelectorAll(this.slideSelector);
+
+    allSlides.forEach((slide, index) => {
       slide.style.width = `${this.slideWidth}px`;
 
       if (this.mode === "fade") {
@@ -222,6 +267,8 @@ class Carousel {
 
     this.carousel.append(btnPrev, btnNext);
     this.arrowBtns = this.carousel.querySelectorAll(".carousel-btn");
+
+    this.updateArrowsState();
   }
 
   createArrowBtn(direction, label) {
@@ -235,6 +282,18 @@ class Carousel {
     btn.innerHTML = `<i class="icon-arrow-${btnIcon}"></i>`;
 
     return btn;
+  }
+
+  updateArrowsState() {
+    if (this.infinite || !this.arrows) return;
+
+    const btnPrev = this.carousel.querySelector(this.btnPrevSelector);
+    const btnNext = this.carousel.querySelector(this.btnNextSelector);
+
+    if (!btnPrev || !btnNext) return;
+
+    btnPrev.classList.toggle("disabled", this.currentIndex === 0);
+    btnNext.classList.toggle("disabled", this.currentIndex === this.total - 1);
   }
 
   createDots() {
@@ -279,7 +338,30 @@ class Carousel {
   }
 
   moveToSlide(index) {
-    if (index < 0 || index >= this.total) return;
+    if (this.infinite && this.mode === "slide") {
+      if (index < 0) {
+        this.isJumping = true;
+        this.currentIndex = this.total - 1;
+        this.updateActive();
+        this.track.style.transform = `translateX(0px)`;
+        return;
+      }
+
+      if (index >= this.total) {
+        this.isJumping = true;
+        this.currentIndex = 0;
+        this.updateActive();
+        this.track.style.transform = `translateX(-${(this.total + 1) * this.slideWidth}px)`;
+        return;
+      }
+    }
+
+    if (this.infinite && this.mode === "fade") {
+      if (index < 0) index = this.total - 1;
+      if (index >= this.total) index = 0;
+    } else {
+      if (index < 0 || index >= this.total) return;
+    }
 
     this.currentIndex = index;
     this.updateActive();
@@ -287,11 +369,28 @@ class Carousel {
     if (this.mode === "slide") {
       this.moveTrack();
     }
+
+    this.updateArrowsState();
   }
 
   moveTrack() {
-    this.transform = this.currentIndex * this.slideWidth;
+    const offset = this.infinite && this.mode === "slide" ? 1 : 0;
+    this.transform = (this.currentIndex + offset) * this.slideWidth;
     this.track.style.transform = `translateX(-${this.transform}px)`;
+  }
+
+  cloneSlides() {
+    const firstClone = this.slides[0].cloneNode(true);
+    const lastClone = this.slides[this.total - 1].cloneNode(true);
+
+    firstClone.dataset.clone = "true";
+    lastClone.dataset.clone = "true";
+
+    firstClone.classList.remove(this.activeClass);
+    lastClone.classList.remove(this.activeClass);
+
+    this.track.prepend(lastClone);
+    this.track.append(firstClone);
   }
 
   destroy() {
@@ -306,6 +405,10 @@ class Carousel {
     this.carousel.removeEventListener("pointerleave", this.handlePointerEnd);
     this.carousel.removeEventListener("click", this.handleClickPrevent);
 
+    if (this.infinite && this.mode === "slide") {
+      this.track.removeEventListener("transitionend", this.handleTransitionEnd);
+    }
+
     if (this.dots && this.dotsHolder) {
       this.dotsHolder.remove();
     }
@@ -313,6 +416,12 @@ class Carousel {
     if (this.arrows && this.arrowBtns) {
       this.arrowBtns.forEach((btn) => {
         btn.remove();
+      });
+    }
+
+    if (this.infinite && this.mode === "slide") {
+      this.track.querySelectorAll("[data-clone]").forEach((clone) => {
+        clone.remove();
       });
     }
   }

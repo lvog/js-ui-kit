@@ -53,7 +53,7 @@
   }
 
   &-btn {
-    @include m.transition(color);
+    @include m.transition(color opacity);
     position: absolute;
     top: 50%;
     transform: translateY(-50%);
@@ -64,6 +64,12 @@
     background: transparent;
     border: none;
     z-index: 3;
+
+    &.disabled {
+      opacity: 0.2;
+      pointer-events: none;
+      cursor: none;
+    }
 
     @include m.hover {
       color: var(--color-gray);
