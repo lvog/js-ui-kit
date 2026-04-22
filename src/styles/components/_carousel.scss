@@ -1,6 +1,7 @@
 @use "abstracts/mixins" as m;
 
 .carousel {
+  touch-action: pan-y;
   position: relative;
 
   &.slide {

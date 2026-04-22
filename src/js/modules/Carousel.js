@@ -10,6 +10,7 @@ class Carousel {
     this.dotsSelector = options.dotsSelector || ".carousel-dots";
     this.dotBtnSelector = options.dotBtnSelector || ".carousel-dot-btn";
     this.mode = options.mode || "slide";
+    this.swipeThreshold = options.swipeThreshold || 50;
 
     this.activeClass = "slide-active";
 
@@ -54,12 +55,108 @@ class Carousel {
     this.createArrows();
     this.createDots();
     this.bindEvents();
+    this.bindSwipe();
     this.bindResize();
   }
 
   findElements() {
     this.track = this.carousel.querySelector(this.trackSelector);
     this.slides = this.carousel.querySelectorAll(this.slideSelector);
+  }
+
+  bindSwipe() {
+    let startX = 0;
+    let startY = 0;
+    let isDragging = false;
+    let isMoved = false;
+
+    this.handleDragStart = (e) => e.preventDefault();
+
+    this.handlePointerDown = (e) => {
+      const isInteractive = e.target.closest(
+        "a, button, input, select, textarea",
+      );
+      if (isInteractive || e.button !== 0) return;
+
+      isDragging = true;
+      isMoved = false;
+
+      startX = e.clientX;
+      startY = e.clientY;
+
+      this.carousel.setPointerCapture(e.pointerId);
+    };
+
+    this.handlePointerMove = (e) => {
+      if (!isDragging) return;
+
+      const diffX = e.clientX - startX;
+      const diffY = e.clientY - startY;
+
+      if (Math.abs(diffY) > Math.abs(diffX)) return;
+
+      if (Math.abs(diffX) > 5) {
+        isMoved = true;
+      }
+
+      if (this.mode !== "slide") return;
+
+      const isFirst = this.currentIndex === 0;
+      const isLast = this.currentIndex === this.total - 1;
+
+      if ((isFirst && diffX > 0) || (isLast && diffX < 0)) return;
+
+      const base = this.currentIndex * this.slideWidth;
+
+      if (this.track.style.transition !== "none") {
+        this.track.style.transition = "none";
+      }
+
+      this.track.style.transform = `translateX(-${base - diffX}px)`;
+    };
+
+    this.handlePointerEnd = (e) => {
+      if (!isDragging) return;
+
+      isDragging = false;
+
+      const diffX = e.clientX - startX;
+
+      if (this.carousel.hasPointerCapture(e.pointerId)) {
+        this.carousel.releasePointerCapture(e.pointerId);
+      }
+
+      if (this.mode === "slide") {
+        this.track.style.transition = "";
+      }
+
+      if (diffX >= this.swipeThreshold) {
+        this.moveToSlide(this.currentIndex - 1);
+      } else if (diffX <= -this.swipeThreshold) {
+        this.moveToSlide(this.currentIndex + 1);
+      } else {
+        this.moveToSlide(this.currentIndex);
+      }
+
+      setTimeout(() => {
+        isMoved = false;
+      }, 0);
+    };
+
+    this.handleClickPrevent = (e) => {
+      if (isMoved) {
+        e.preventDefault();
+        e.stopPropagation();
+      }
+    };
+
+    this.carousel.addEventListener("dragstart", this.handleDragStart);
+    this.carousel.addEventListener("pointerdown", this.handlePointerDown);
+    this.carousel.addEventListener("pointermove", this.handlePointerMove);
+    this.carousel.addEventListener("pointerup", this.handlePointerEnd);
+    this.carousel.addEventListener("pointercancel", this.handlePointerEnd);
+    this.carousel.addEventListener("pointerleave", this.handlePointerEnd);
+    this.carousel.addEventListener("click", this.handleClickPrevent);
   }
 
   bindEvents() {
@@ -201,6 +298,14 @@ class Carousel {
     window.removeEventListener("resize", this.handleResize);
     this.carousel.removeEventListener("click", this.handleClick);
 
+    this.carousel.removeEventListener("dragstart", this.handleDragStart);
+    this.carousel.removeEventListener("pointerdown", this.handlePointerDown);
+    this.carousel.removeEventListener("pointermove", this.handlePointerMove);
+    this.carousel.removeEventListener("pointerup", this.handlePointerEnd);
+    this.carousel.removeEventListener("pointercancel", this.handlePointerEnd);
+    this.carousel.removeEventListener("pointerleave", this.handlePointerEnd);
+    this.carousel.removeEventListener("click", this.handleClickPrevent);
+
     if (this.dots && this.dotsHolder) {
       this.dotsHolder.remove();
     }
@@ -213,6 +318,4 @@ class Carousel {
   }
 }
 
-export const carousel = new Carousel({
-  mode: "fade",
-});
+export const carousel = new Carousel();
