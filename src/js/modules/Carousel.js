@@ -12,6 +12,8 @@ class Carousel {
     this.mode = options.mode || "slide";
     this.swipeThreshold = options.swipeThreshold || 50;
     this.infinite = options.infinite ?? false;
+    this.autoplay = options.autoplay ?? false;
+    this.autoplayDelay = options.autoplayDelay || 5000;
 
     this.activeClass = "slide-active";
 
@@ -56,12 +58,18 @@ class Carousel {
     if (this.infinite && this.mode === "slide") {
       this.cloneSlides();
     }
+
     this.updateLayout();
     this.createArrows();
     this.createDots();
     this.bindEvents();
     this.bindSwipe();
     this.bindResize();
+
+    if (this.autoplay) {
+      this.startAutoplay();
+      this.bindAutoplayEvents();
+    }
 
     if (this.infinite && this.mode === "slide") {
       this.bindTransitionEnd();
@@ -71,6 +79,31 @@ class Carousel {
   findElements() {
     this.track = this.carousel.querySelector(this.trackSelector);
     this.slides = this.carousel.querySelectorAll(this.slideSelector);
+  }
+
+  startAutoplay() {
+    this.stopAutoplay();
+    this.intervalId = setInterval(() => {
+      this.moveToSlide(this.currentIndex + 1);
+    }, this.autoplayDelay);
+  }
+
+  stopAutoplay() {
+    clearInterval(this.intervalId);
+  }
+
+  bindAutoplayEvents() {
+    this.handlePointerEnter = () => {
+      this.stopAutoplay();
+    };
+
+    this.handlePointerLeave = (e) => {
+      if (e.pointerType === "touch") return;
+      this.startAutoplay();
+    };
+
+    this.carousel.addEventListener("pointerenter", this.handlePointerEnter);
+    this.carousel.addEventListener("pointerleave", this.handlePointerLeave);
   }
 
   bindSwipe() {
@@ -88,6 +121,9 @@ class Carousel {
 
       if (isInteractive || e.button !== 0) return;
       if (this.isJumping) return;
+      if (this.autoplay) {
+        this.stopAutoplay();
+      }
 
       isDragging = true;
       isMoved = false;
@@ -150,6 +186,10 @@ class Carousel {
         this.moveToSlide(this.currentIndex + 1);
       } else {
         this.moveToSlide(this.currentIndex);
+      }
+
+      if (this.autoplay) {
+        this.startAutoplay();
       }
 
       setTimeout(() => {
@@ -360,7 +400,10 @@ class Carousel {
       if (index < 0) index = this.total - 1;
       if (index >= this.total) index = 0;
     } else {
-      if (index < 0 || index >= this.total) return;
+      if (index < 0 || index >= this.total) {
+        this.stopAutoplay();
+        return;
+      }
     }
 
     this.currentIndex = index;
@@ -424,7 +467,23 @@ class Carousel {
         clone.remove();
       });
     }
+
+    if (this.autoplay) {
+      this.stopAutoplay();
+      this.carousel.removeEventListener(
+        "pointerenter",
+        this.handlePointerEnter,
+      );
+      this.carousel.removeEventListener(
+        "pointerleave",
+        this.handlePointerLeave,
+      );
+    }
   }
 }
 
-export const carousel = new Carousel();
+export const carousel = new Carousel({
+  mode: "fade",
+  infinite: true,
+  autoplay: true,
+});
