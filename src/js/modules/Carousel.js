@@ -14,6 +14,8 @@ class Carousel {
     this.infinite = options.infinite ?? false;
     this.autoplay = options.autoplay ?? false;
     this.autoplayDelay = options.autoplayDelay || 5000;
+    this.destroyAbove = options.destroyAbove || null;
+    this.destroyBelow = options.destroyBelow || null;
 
     this.activeClass = "slide-active";
 
@@ -29,6 +31,7 @@ class Carousel {
     this.currentIndex = 0;
     this.total = 0;
     this.isJumping = false;
+    this.isInitialized = false;
   }
 
   init() {
@@ -39,6 +42,16 @@ class Carousel {
       return;
     }
 
+    if (this.destroyAbove || this.destroyBelow) {
+      this.bindBreakpointResize();
+      return;
+    }
+
+    this.initCarousel();
+  }
+
+  initCarousel() {
+    this.resetIndex();
     this.addMode();
     this.findElements();
 
@@ -74,6 +87,8 @@ class Carousel {
     if (this.infinite && this.mode === "slide") {
       this.bindTransitionEnd();
     }
+
+    this.isInitialized = true;
   }
 
   findElements() {
@@ -267,9 +282,37 @@ class Carousel {
     this.track.addEventListener("transitionend", this.handleTransitionEnd);
   }
 
+  bindBreakpointResize() {
+    this.checkBreakpoint();
+    this.handleBreakpointResize = () => this.checkBreakpoint();
+    window.addEventListener("resize", this.handleBreakpointResize);
+  }
+
+  checkBreakpoint() {
+    const width = window.innerWidth;
+
+    const shouldDestroy =
+      (this.destroyAbove !== null && width >= this.destroyAbove) ||
+      (this.destroyBelow !== null && width <= this.destroyBelow);
+
+    if (shouldDestroy && this.isInitialized) {
+      this.destroy();
+      return;
+    }
+
+    if (!shouldDestroy && !this.isInitialized) {
+      this.initCarousel();
+    }
+  }
+
   initState() {
     this.total = this.slides.length;
     this.slides[0].classList.add(this.activeClass);
+  }
+
+  resetIndex() {
+    this.currentIndex = 0;
+    this.prevIndex = 0;
   }
 
   addMode() {
@@ -454,12 +497,15 @@ class Carousel {
 
     if (this.dots && this.dotsHolder) {
       this.dotsHolder.remove();
+      this.dotsHolder = null;
+      this.dotBtns = [];
     }
 
     if (this.arrows && this.arrowBtns) {
       this.arrowBtns.forEach((btn) => {
         btn.remove();
       });
+      this.arrowBtns = [];
     }
 
     if (this.infinite && this.mode === "slide") {
@@ -479,11 +525,24 @@ class Carousel {
         this.handlePointerLeave,
       );
     }
+
+    if (this.track) {
+      this.track.removeAttribute("style");
+    }
+
+    this.slides.forEach((slide) => {
+      slide.removeAttribute("style");
+    });
+
+    this.slides[this.currentIndex].classList.remove(this.activeClass);
+
+    this.carousel.classList.remove(this.mode);
+    this.isInitialized = false;
   }
 }
 
 export const carousel = new Carousel({
-  mode: "fade",
   infinite: true,
   autoplay: true,
+  destroyAbove: 768,
 });
