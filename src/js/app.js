@@ -1,7 +1,6 @@
 import "../styles/style.scss";
-import { carousel } from "@js/modules/Carousel";
+import { initSlider } from "@js/components/slider/initSlider";
 
 document.addEventListener("DOMContentLoaded", () => {
-  // console.log("Here we go!");
-  carousel.init();
+  initSlider();
 });

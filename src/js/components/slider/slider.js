@@ -1,9 +1,28 @@
-class Carousel {
+/**
+ * Slider configuration options
+ * @typedef {Object} SliderOptions
+ * @property {string} [sliderSelector] - Root element selector
+ * @property {"slide" | "fade"} [mode] - Animation mode
+ * @property {boolean} [arrows] - Enable navigation arrows
+ * @property {string} [btnPrevContent="Prev"] - Content for the previous button (text, HTML, icon)
+ * @property {string} [btnNextContent="Next"] - Content for the next button (text, HTML, icon)
+ * @property {boolean} [dots] - Enable pagination dots
+ * @property {number} [swipeThreshold] - Minimum swipe distance (px)
+ * @property {boolean} [infinite] - Enable infinite loop
+ * @property {boolean} [autoplay] - Enable autoplay
+ * @property {number} [autoplayDelay] - Autoplay interval (ms)
+ * @property {number|null} [destroyAbove] - Disable slider above this width
+ * @property {number|null} [destroyBelow] - Disable slider below this width
+ */
+
+export default class Slider {
   constructor(options = {}) {
     // User options
-    this.carouselSelector = options.carouselSelector || ".carousel";
+    this.sliderSelector = options.sliderSelector || ".slider";
     this.mode = options.mode || "slide";
     this.arrows = options.arrows ?? true;
+    this.btnPrevContent = options.btnPrevContent || "Prev";
+    this.btnNextContent = options.btnNextContent || "Next";
     this.dots = options.dots ?? false;
     this.swipeThreshold = options.swipeThreshold || 50;
     this.infinite = options.infinite ?? true;
@@ -13,16 +32,16 @@ class Carousel {
     this.destroyBelow = options.destroyBelow || null;
 
     // Internal selectors
-    this.trackSelector = ".carousel-track";
-    this.slideSelector = ".carousel-slide";
-    this.btnPrevSelector = ".carousel-btn-prev";
-    this.btnNextSelector = ".carousel-btn-next";
-    this.dotsSelector = ".carousel-dots";
-    this.dotBtnSelector = ".carousel-dot-btn";
+    this.trackSelector = ".slider-track";
+    this.slideSelector = ".slider-slide";
+    this.btnPrevSelector = ".slider-btn-prev";
+    this.btnNextSelector = ".slider-btn-next";
+    this.dotsSelector = ".slider-dots";
+    this.dotBtnSelector = ".slider-dot-btn";
     this.activeClass = "slide-active";
 
     // DOM elements
-    this.carousel = document.querySelector(this.carouselSelector);
+    this.slider = document.querySelector(this.sliderSelector);
     this.track = null;
     this.slides = [];
     this.arrowBtns = [];
@@ -43,35 +62,33 @@ class Carousel {
   // Initialization
 
   init() {
-    if (!this.carousel) {
+    if (!this.slider) {
       console.error(
-        `There is no such element with class - ${this.carouselSelector}`,
+        `There is no such element with class - ${this.sliderSelector}`,
       );
       return;
     }
 
     if (this.destroyAbove || this.destroyBelow) {
-      this.bindBreakpointResize();
+      this.bindBreakpoint();
       return;
     }
 
-    this.initCarousel();
+    this.initSlider();
   }
 
-  initCarousel() {
+  initSlider() {
     this.resetIndex();
     this.addMode();
     this.findElements();
 
     if (!this.track) {
-      console.error("Carousel: track element not found");
+      console.error("Slider: track element not found");
       return;
     }
 
     if (this.slides.length <= 1) {
-      console.error(
-        "There must be at least 2 slides for the carousel to work.",
-      );
+      console.error("There must be at least 2 slides for the slider to work.");
       return;
     }
 
@@ -89,7 +106,7 @@ class Carousel {
 
     if (this.autoplay) {
       this.startAutoplay();
-      this.bindAutoplayEvents();
+      this.bindAutoplay();
     }
 
     if (this.infinite && this.mode === "slide") {
@@ -103,8 +120,8 @@ class Carousel {
   // Internal preparation before rendering
 
   findElements() {
-    this.track = this.carousel.querySelector(this.trackSelector);
-    this.slides = this.carousel.querySelectorAll(this.slideSelector);
+    this.track = this.slider.querySelector(this.trackSelector);
+    this.slides = this.slider.querySelectorAll(this.slideSelector);
   }
 
   resetIndex() {
@@ -118,14 +135,14 @@ class Carousel {
   }
 
   addMode() {
-    this.carousel.classList.add(this.mode);
+    this.slider.classList.add(this.mode);
   }
 
   // Layout
   // Responsible for dimensions and positioning
 
   updateLayout() {
-    this.slideWidth = this.carousel.offsetWidth;
+    this.slideWidth = this.slider.offsetWidth;
 
     const totalSlides =
       this.infinite && this.mode === "slide" ? this.total + 2 : this.total;
@@ -162,8 +179,8 @@ class Carousel {
     const btnPrev = this.createArrowBtn("prev", "Previous");
     const btnNext = this.createArrowBtn("next", "Next");
 
-    this.carousel.append(btnPrev, btnNext);
-    this.arrowBtns = this.carousel.querySelectorAll(".carousel-btn");
+    this.slider.append(btnPrev, btnNext);
+    this.arrowBtns = this.slider.querySelectorAll(".slider-btn");
 
     this.updateArrowsState();
   }
@@ -173,10 +190,10 @@ class Carousel {
 
     btn.type = "button";
     btn.setAttribute("aria-label", label);
-    btn.classList.add("carousel-btn", `carousel-btn-${direction}`);
+    btn.classList.add("slider-btn", `slider-btn-${direction}`);
 
-    const btnIcon = direction === "prev" ? "left" : "right";
-    btn.innerHTML = `<i class="icon-arrow-${btnIcon}"></i>`;
+    btn.innerHTML =
+      direction === "prev" ? this.btnPrevContent : this.btnNextContent;
 
     return btn;
   }
@@ -197,8 +214,8 @@ class Carousel {
       this.dotsHolder.appendChild(dot);
     }
 
-    this.carousel.append(this.dotsHolder);
-    this.dotBtns = this.carousel.querySelectorAll(this.dotBtnSelector);
+    this.slider.append(this.dotsHolder);
+    this.dotBtns = this.slider.querySelectorAll(this.dotBtnSelector);
   }
 
   createDotBtn(index) {
@@ -228,8 +245,8 @@ class Carousel {
   updateArrowsState() {
     if (this.infinite || !this.arrows) return;
 
-    const btnPrev = this.carousel.querySelector(this.btnPrevSelector);
-    const btnNext = this.carousel.querySelector(this.btnNextSelector);
+    const btnPrev = this.slider.querySelector(this.btnPrevSelector);
+    const btnNext = this.slider.querySelector(this.btnNextSelector);
 
     if (!btnPrev || !btnNext) return;
 
@@ -309,7 +326,7 @@ class Carousel {
       }
     };
 
-    this.carousel.addEventListener("click", this.handleClick);
+    this.slider.addEventListener("click", this.handleClick);
   }
 
   bindSwipe() {
@@ -337,7 +354,7 @@ class Carousel {
       startX = e.clientX;
       startY = e.clientY;
 
-      this.carousel.setPointerCapture(e.pointerId);
+      this.slider.setPointerCapture(e.pointerId);
     };
 
     this.handlePointerMove = (e) => {
@@ -378,8 +395,8 @@ class Carousel {
 
       const diffX = e.clientX - startX;
 
-      if (this.carousel.hasPointerCapture(e.pointerId)) {
-        this.carousel.releasePointerCapture(e.pointerId);
+      if (this.slider.hasPointerCapture(e.pointerId)) {
+        this.slider.releasePointerCapture(e.pointerId);
       }
 
       if (this.mode === "slide") {
@@ -410,13 +427,13 @@ class Carousel {
       }
     };
 
-    this.carousel.addEventListener("dragstart", this.handleDragStart);
-    this.carousel.addEventListener("pointerdown", this.handlePointerDown);
-    this.carousel.addEventListener("pointermove", this.handlePointerMove);
-    this.carousel.addEventListener("pointerup", this.handlePointerEnd);
-    this.carousel.addEventListener("pointercancel", this.handlePointerEnd);
-    this.carousel.addEventListener("pointerleave", this.handlePointerEnd);
-    this.carousel.addEventListener("click", this.handleClickPrevent);
+    this.slider.addEventListener("dragstart", this.handleDragStart);
+    this.slider.addEventListener("pointerdown", this.handlePointerDown);
+    this.slider.addEventListener("pointermove", this.handlePointerMove);
+    this.slider.addEventListener("pointerup", this.handlePointerEnd);
+    this.slider.addEventListener("pointercancel", this.handlePointerEnd);
+    this.slider.addEventListener("pointerleave", this.handlePointerEnd);
+    this.slider.addEventListener("click", this.handleClickPrevent);
   }
 
   bindResize() {
@@ -443,13 +460,13 @@ class Carousel {
     this.track.addEventListener("transitionend", this.handleTransitionEnd);
   }
 
-  bindBreakpointResize() {
+  bindBreakpoint() {
     this.checkBreakpoint();
     this.handleBreakpointResize = () => this.checkBreakpoint();
     window.addEventListener("resize", this.handleBreakpointResize);
   }
 
-  bindAutoplayEvents() {
+  bindAutoplay() {
     this.handlePointerEnter = () => {
       this.stopAutoplay();
     };
@@ -459,8 +476,8 @@ class Carousel {
       this.startAutoplay();
     };
 
-    this.carousel.addEventListener("pointerenter", this.handlePointerEnter);
-    this.carousel.addEventListener("pointerleave", this.handlePointerLeave);
+    this.slider.addEventListener("pointerenter", this.handlePointerEnter);
+    this.slider.addEventListener("pointerleave", this.handlePointerLeave);
   }
 
   // Responsive
@@ -479,7 +496,7 @@ class Carousel {
     }
 
     if (!shouldDestroy && !this.isInitialized) {
-      this.initCarousel();
+      this.initSlider();
     }
   }
 
@@ -519,15 +536,15 @@ class Carousel {
 
   destroy() {
     window.removeEventListener("resize", this.handleResize);
-    this.carousel.removeEventListener("click", this.handleClick);
+    this.slider.removeEventListener("click", this.handleClick);
 
-    this.carousel.removeEventListener("dragstart", this.handleDragStart);
-    this.carousel.removeEventListener("pointerdown", this.handlePointerDown);
-    this.carousel.removeEventListener("pointermove", this.handlePointerMove);
-    this.carousel.removeEventListener("pointerup", this.handlePointerEnd);
-    this.carousel.removeEventListener("pointercancel", this.handlePointerEnd);
-    this.carousel.removeEventListener("pointerleave", this.handlePointerEnd);
-    this.carousel.removeEventListener("click", this.handleClickPrevent);
+    this.slider.removeEventListener("dragstart", this.handleDragStart);
+    this.slider.removeEventListener("pointerdown", this.handlePointerDown);
+    this.slider.removeEventListener("pointermove", this.handlePointerMove);
+    this.slider.removeEventListener("pointerup", this.handlePointerEnd);
+    this.slider.removeEventListener("pointercancel", this.handlePointerEnd);
+    this.slider.removeEventListener("pointerleave", this.handlePointerEnd);
+    this.slider.removeEventListener("click", this.handleClickPrevent);
 
     if (this.infinite && this.mode === "slide") {
       this.track.removeEventListener("transitionend", this.handleTransitionEnd);
@@ -554,14 +571,8 @@ class Carousel {
 
     if (this.autoplay) {
       this.stopAutoplay();
-      this.carousel.removeEventListener(
-        "pointerenter",
-        this.handlePointerEnter,
-      );
-      this.carousel.removeEventListener(
-        "pointerleave",
-        this.handlePointerLeave,
-      );
+      this.slider.removeEventListener("pointerenter", this.handlePointerEnter);
+      this.slider.removeEventListener("pointerleave", this.handlePointerLeave);
     }
 
     if (this.track) {
@@ -573,16 +584,7 @@ class Carousel {
       slide.classList.remove(this.activeClass);
     });
 
-    this.carousel.classList.remove(this.mode);
+    this.slider.classList.remove(this.mode);
     this.isInitialized = false;
   }
 }
-
-export const carousel = new Carousel({
-  mode: "fade",
-  arrows: false,
-  dots: true,
-  infinite: true,
-  autoplay: true,
-  destroyAbove: 1024,
-});

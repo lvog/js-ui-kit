@@ -1,26 +1,26 @@
 @use "abstracts/mixins" as m;
 
-.carousel {
+.slider {
   touch-action: pan-y;
   position: relative;
 
   &.slide {
-    .carousel-track {
+    .slider-track {
       @include m.transition(
-        var(--carousel-slide-property),
-        var(--carousel-duration),
-        var(--carousel-easing)
+        var(--slider-slide-property),
+        var(--slider-duration),
+        var(--slider-easing)
       );
       overflow: hidden;
     }
   }
 
   &.fade {
-    .carousel-slide {
+    .slider-slide {
       @include m.transition(
-        var(--carousel-fade-property),
-        var(--carousel-duration),
-        var(--carousel-easing)
+        var(--slider-fade-property),
+        var(--slider-duration),
+        var(--slider-easing)
       );
       position: relative;
       top: 0;
