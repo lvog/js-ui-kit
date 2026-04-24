@@ -1,14 +1,15 @@
 @font-face {
-  font-family: 'icomoon';
-  src:  url('../fonts/icomoon.woff?tln2ht') format('woff');
+  font-family: "icomoon";
+  src: url("../fonts/icomoon.woff?tln2ht") format("woff");
   font-weight: normal;
   font-style: normal;
   font-display: block;
 }
 
-[class^="icon-"], [class*=" icon-"] {
+[class^="icon-"],
+[class*=" icon-"] {
   /* use !important to prevent issues with browser extensions that change fonts */
-  font-family: 'icomoon' !important;
+  font-family: "icomoon" !important;
   speak: never;
   font-style: normal;
   font-weight: normal;
@@ -26,4 +27,7 @@
 }
 .icon-arrow-right:before {
   content: "\e901";
+}
+.icon-arrow-down:before {
+  content: "\e902";
 }

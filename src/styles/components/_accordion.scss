@@ -1,0 +1,57 @@
+@use "abstracts/mixins" as m;
+
+.accordion {
+  @include m.listReset;
+
+  li {
+    overflow: hidden;
+    position: relative;
+    border-top: 1px solid var(--color-light-gray);
+    border-left: 1px solid var(--color-light-gray);
+    border-right: 1px solid var(--color-light-gray);
+
+    &:last-child {
+      border-bottom: 1px solid var(--color-light-gray);
+    }
+
+    &.show {
+      .opener {
+        color: var(--color-dark-orange);
+        box-shadow: 0 1px 0 0 var(--color-light-gray);
+
+        i {
+          transform: translateY(-50%) rotate(-180deg);
+        }
+      }
+    }
+
+    &.hide {
+      .slide {
+        display: none;
+      }
+    }
+  }
+
+  .opener {
+    @include m.transition(color);
+    display: block;
+    font-size: 16px;
+    color: var(--color-black);
+    padding: 15px 30px 15px 15px;
+    position: relative;
+    box-shadow: 0 1px 0 0 var(--color-light-gray);
+
+    i {
+      @include m.transition(transform);
+      font-size: 10px;
+      position: absolute;
+      top: 50%;
+      right: 15px;
+      transform: translateY(-50%);
+    }
+  }
+
+  .text-block {
+    padding: 15px;
+  }
+}
