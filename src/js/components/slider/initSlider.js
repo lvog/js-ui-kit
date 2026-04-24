@@ -6,7 +6,6 @@ export function initSlider() {
     btnPrevContent: `<i class="icon-arrow-left"></i>`,
     btnNextContent: `<i class="icon-arrow-right"></i>`,
     dots: true,
-    infinite: true,
     autoplay: true,
     destroyAbove: 1024,
   });

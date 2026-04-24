@@ -2,6 +2,8 @@
 
 .slider {
   touch-action: pan-y;
+  user-select: none;
+  overflow: hidden;
   position: relative;
 
   &.slide {
@@ -68,7 +70,6 @@
     &.disabled {
       opacity: 0.2;
       pointer-events: none;
-      cursor: none;
     }
 
     @include m.hover {
@@ -98,13 +99,13 @@
 
   &-dot-btn {
     @include m.transition(background);
-    width: 8px;
-    height: 8px;
-    background: var(--color-black);
+    width: 10px;
+    height: 10px;
     padding: 0;
+    margin: 4px;
+    background: var(--color-black);
     border-radius: 50%;
     border: none;
-    margin: 2px;
 
     &.slide-active {
       background: var(--color-gray);
