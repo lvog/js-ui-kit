@@ -3,6 +3,8 @@ export default class Accordion {
     this.accordionSelector = options.sliderSelector || ".accordion";
     this.animSpeed = options.animSpeed || 500;
     this.collapsible = options.collapsible || false;
+    this.scrollToActive = options.scrollToActive || false;
+    this.scrollOffset = options.scrollOffset || 0;
     this.destroyAbove = options.destroyAbove || null;
     this.destroyBelow = options.destroyBelow || null;
 
@@ -74,8 +76,6 @@ export default class Accordion {
           this.prevSlideHolder = null;
         }
         return;
-      } else {
-        this.show(slide, holder);
       }
 
       if (this.prevSlideHolder) {
@@ -83,6 +83,8 @@ export default class Accordion {
         const prevSlide = prevHolder.querySelector(this.slideSelector);
         this.hide(prevSlide, prevHolder);
       }
+
+      this.show(slide, holder);
 
       this.prevSlideHolder = holder;
     };
@@ -113,6 +115,10 @@ export default class Accordion {
 
     slide._timer = setTimeout(() => {
       slide.removeAttribute("style");
+
+      if (this.scrollToActive) {
+        this.scrollToItem(holder);
+      }
     }, this.animSpeed);
   }
 
@@ -148,6 +154,37 @@ export default class Accordion {
     if (!shouldDestroy && !this.isInitialized) {
       this.initAccordion();
     }
+  }
+
+  scrollToItem(holder) {
+    const itemTop = holder.getBoundingClientRect().top + window.scrollY;
+
+    if (itemTop < window.scrollY) {
+      this.smoothScroll(itemTop - this.scrollOffset);
+    }
+  }
+
+  smoothScroll(targetY) {
+    const startY = window.scrollY;
+    const distance = targetY - startY;
+    const duration = this.animSpeed;
+    let startTime = null;
+
+    const easeInOut = (t) => (t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t);
+
+    const step = (currentTime) => {
+      if (!startTime) startTime = currentTime;
+      const timePassed = currentTime - startTime;
+      const progress = Math.min(timePassed / duration, 1);
+
+      window.scrollTo(0, startY + distance * easeInOut(progress));
+
+      if (timePassed < duration) {
+        requestAnimationFrame(step);
+      }
+    };
+
+    requestAnimationFrame(step);
   }
 
   destroy() {
