@@ -1,6 +1,6 @@
 export default class Accordion {
   constructor(options = {}) {
-    this.accordionSelector = options.sliderSelector || ".accordion";
+    this.accordionSelector = options.accordionSelector || ".accordion";
     this.animSpeed = options.animSpeed || 500;
     this.collapsible = options.collapsible || false;
     this.scrollToActive = options.scrollToActive || false;
@@ -8,15 +8,14 @@ export default class Accordion {
     this.destroyAbove = options.destroyAbove || null;
     this.destroyBelow = options.destroyBelow || null;
 
-    this.openerSelector = ".opener";
-    this.slideHolderSelector = "li";
-    this.slideSelector = ".slide";
-    this.showClass = "show";
-    this.hideClass = "hide";
+    this.openerSelector = ".accordion-opener";
+    this.accordionItemSelector = ".accordion-item";
+    this.slideSelector = ".accordion-slide";
+    this.activeClass = "active";
 
     this.accordion = document.querySelector(this.accordionSelector);
-    this.slideHolders = [];
-    this.prevSlideHolder = null;
+    this.accordionItems = [];
+    this.prevAccordionItem = null;
 
     this.isInitialized = false;
   }
@@ -39,22 +38,26 @@ export default class Accordion {
 
   initAccordion() {
     this.findElements();
-    this.initState();
+    this.findActiveElement();
     this.bindEvents();
 
     this.isInitialized = true;
   }
 
-  findElements() {
-    this.slideHolders = document.querySelectorAll(
-      `${this.accordionSelector} > ${this.slideHolderSelector}`,
+  findActiveElement() {
+    const activeElement = this.accordion.querySelector(
+      `${this.accordionItemSelector}.${this.activeClass}`,
     );
+
+    if (!activeElement) return;
+
+    this.prevAccordionItem = activeElement;
   }
 
-  initState() {
-    this.slideHolders.forEach((holder) => {
-      holder.classList.add(this.hideClass);
-    });
+  findElements() {
+    this.accordionItems = this.accordion.querySelectorAll(
+      this.accordionItemSelector,
+    );
   }
 
   bindEvents() {
@@ -63,30 +66,28 @@ export default class Accordion {
 
       if (!opener) return;
 
-      e.preventDefault();
-
-      const holder = opener.closest("li");
+      const holder = opener.closest(this.accordionItemSelector);
       const slide = holder.querySelector(this.slideSelector);
 
-      const isActive = holder.classList.contains(this.showClass);
+      const isActive = holder.classList.contains(this.activeClass);
 
       if (isActive) {
         if (this.collapsible) {
-          this.hide(slide, holder);
-          this.prevSlideHolder = null;
+          this.close(slide, holder);
+          this.prevAccordionItem = null;
         }
         return;
       }
 
-      if (this.prevSlideHolder) {
-        const prevHolder = this.prevSlideHolder;
-        const prevSlide = prevHolder.querySelector(this.slideSelector);
-        this.hide(prevSlide, prevHolder);
+      if (this.prevAccordionItem) {
+        const prevItem = this.prevAccordionItem;
+        const prevSlide = prevItem.querySelector(this.slideSelector);
+        this.close(prevSlide, prevItem);
       }
 
-      this.show(slide, holder);
+      this.open(slide, holder);
 
-      this.prevSlideHolder = holder;
+      this.prevAccordionItem = holder;
     };
 
     this.accordion.addEventListener("click", this.handleClick);
@@ -98,13 +99,15 @@ export default class Accordion {
     window.addEventListener("resize", this.handleBreakpointResize);
   }
 
-  show(slide, holder) {
+  open(slide, holder) {
     if (slide._timer) {
       clearTimeout(slide._timer);
     }
 
-    holder.classList.remove(this.hideClass);
-    holder.classList.add(this.showClass);
+    holder.classList.add(this.activeClass);
+    holder
+      .querySelector(this.openerSelector)
+      .setAttribute("aria-expanded", "true");
 
     const height = slide.scrollHeight;
 
@@ -122,20 +125,23 @@ export default class Accordion {
     }, this.animSpeed);
   }
 
-  hide(slide, holder) {
+  close(slide, holder) {
     if (slide._timer) {
       clearTimeout(slide._timer);
     }
 
+    slide.style.display = "block";
     slide.style.height = `${slide.scrollHeight}px`;
     slide.style.transition = `height ${this.animSpeed}ms`;
     slide.getBoundingClientRect();
     slide.style.height = "0px";
-    holder.classList.remove(this.showClass);
+    holder.classList.remove(this.activeClass);
+    holder
+      .querySelector(this.openerSelector)
+      .setAttribute("aria-expanded", "false");
 
     slide._timer = setTimeout(() => {
       slide.removeAttribute("style");
-      holder.classList.add(this.hideClass);
     }, this.animSpeed);
   }
 
@@ -190,8 +196,12 @@ export default class Accordion {
   destroy() {
     this.accordion.removeEventListener("click", this.handleClick);
 
-    this.slideHolders.forEach((holder) => {
-      holder.classList.remove(this.showClass, this.hideClass);
+    this.accordionItems.forEach((holder) => {
+      holder.classList.remove(this.activeClass);
+
+      const opener = holder.querySelector(this.openerSelector);
+      opener.removeAttribute("aria-expanded");
+      opener.removeAttribute("aria-controls");
 
       const slide = holder.querySelector(this.slideSelector);
       slide.removeAttribute("style");
