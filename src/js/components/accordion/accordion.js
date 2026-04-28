@@ -1,5 +1,18 @@
+/**
+ * Accordion configuration options
+ * @typedef {Object} AccordionOptions
+ * @property {string} [accordionSelector] - Root element selector
+ * @property {boolean} [collapsible] - Allow closing active item
+ * @property {boolean} [scrollToActive] - Scroll to opened item
+ * @property {number} [scrollOffset] - Offset for scroll position (px)
+ * @property {number} [animSpeed] - Animation duration (ms)
+ * @property {number|null} [destroyAbove] - Disable accordion above this width
+ * @property {number|null} [destroyBelow] - Disable accordion below this width
+ */
+
 export default class Accordion {
   constructor(options = {}) {
+    // User options
     this.accordionSelector = options.accordionSelector || ".accordion";
     this.animSpeed = options.animSpeed || 500;
     this.collapsible = options.collapsible || false;
@@ -8,17 +21,22 @@ export default class Accordion {
     this.destroyAbove = options.destroyAbove || null;
     this.destroyBelow = options.destroyBelow || null;
 
+    // Internal selectors
     this.openerSelector = ".accordion-opener";
     this.accordionItemSelector = ".accordion-item";
     this.slideSelector = ".accordion-slide";
     this.activeClass = "active";
 
+    // DOM elements
     this.accordion = document.querySelector(this.accordionSelector);
     this.accordionItems = [];
     this.prevAccordionItem = null;
 
+    // Flag
     this.isInitialized = false;
   }
+
+  // Initialization
 
   init() {
     if (!this.accordion) {
@@ -44,6 +62,14 @@ export default class Accordion {
     this.isInitialized = true;
   }
 
+  // Setup
+
+  findElements() {
+    this.accordionItems = this.accordion.querySelectorAll(
+      this.accordionItemSelector,
+    );
+  }
+
   findActiveElement() {
     const activeElement = this.accordion.querySelector(
       `${this.accordionItemSelector}.${this.activeClass}`,
@@ -54,50 +80,8 @@ export default class Accordion {
     this.prevAccordionItem = activeElement;
   }
 
-  findElements() {
-    this.accordionItems = this.accordion.querySelectorAll(
-      this.accordionItemSelector,
-    );
-  }
-
-  bindEvents() {
-    this.handleClick = (e) => {
-      const opener = e.target.closest(this.openerSelector);
-
-      if (!opener) return;
-
-      const holder = opener.closest(this.accordionItemSelector);
-      const slide = holder.querySelector(this.slideSelector);
-
-      const isActive = holder.classList.contains(this.activeClass);
-
-      if (isActive) {
-        if (this.collapsible) {
-          this.close(slide, holder);
-          this.prevAccordionItem = null;
-        }
-        return;
-      }
-
-      if (this.prevAccordionItem) {
-        const prevItem = this.prevAccordionItem;
-        const prevSlide = prevItem.querySelector(this.slideSelector);
-        this.close(prevSlide, prevItem);
-      }
-
-      this.open(slide, holder);
-
-      this.prevAccordionItem = holder;
-    };
-
-    this.accordion.addEventListener("click", this.handleClick);
-  }
-
-  bindBreakpoint() {
-    this.checkBreakpoint();
-    this.handleBreakpointResize = () => this.checkBreakpoint();
-    window.addEventListener("resize", this.handleBreakpointResize);
-  }
+  // Core Logic
+  // Main accordion behavior (open/close)
 
   open(slide, holder) {
     if (slide._timer) {
@@ -145,22 +129,8 @@ export default class Accordion {
     }, this.animSpeed);
   }
 
-  checkBreakpoint() {
-    const width = window.innerWidth;
-
-    const shouldDestroy =
-      (this.destroyAbove !== null && width >= this.destroyAbove) ||
-      (this.destroyBelow !== null && width <= this.destroyBelow);
-
-    if (shouldDestroy && this.isInitialized) {
-      this.destroy();
-      return;
-    }
-
-    if (!shouldDestroy && !this.isInitialized) {
-      this.initAccordion();
-    }
-  }
+  // UI helpers
+  // UI-related helpers (scroll, animation)
 
   scrollToItem(holder) {
     const itemTop = holder.getBoundingClientRect().top + window.scrollY;
@@ -192,6 +162,71 @@ export default class Accordion {
 
     requestAnimationFrame(step);
   }
+
+  // Events
+  // All event listeners (user interaction)
+
+  bindEvents() {
+    this.handleClick = (e) => {
+      const opener = e.target.closest(this.openerSelector);
+
+      if (!opener) return;
+
+      const holder = opener.closest(this.accordionItemSelector);
+      const slide = holder.querySelector(this.slideSelector);
+
+      const isActive = holder.classList.contains(this.activeClass);
+
+      if (isActive) {
+        if (this.collapsible) {
+          this.close(slide, holder);
+          this.prevAccordionItem = null;
+        }
+        return;
+      }
+
+      if (this.prevAccordionItem) {
+        const prevItem = this.prevAccordionItem;
+        const prevSlide = prevItem.querySelector(this.slideSelector);
+        this.close(prevSlide, prevItem);
+      }
+
+      this.open(slide, holder);
+
+      this.prevAccordionItem = holder;
+    };
+
+    this.accordion.addEventListener("click", this.handleClick);
+  }
+
+  bindBreakpoint() {
+    this.checkBreakpoint();
+    this.handleBreakpointResize = () => this.checkBreakpoint();
+    window.addEventListener("resize", this.handleBreakpointResize);
+  }
+
+  // Responsive
+  // Handles breakpoint-based behavior
+
+  checkBreakpoint() {
+    const width = window.innerWidth;
+
+    const shouldDestroy =
+      (this.destroyAbove !== null && width >= this.destroyAbove) ||
+      (this.destroyBelow !== null && width <= this.destroyBelow);
+
+    if (shouldDestroy && this.isInitialized) {
+      this.destroy();
+      return;
+    }
+
+    if (!shouldDestroy && !this.isInitialized) {
+      this.initAccordion();
+    }
+  }
+
+  // Destroy
+  // Cleanup and reset
 
   destroy() {
     this.accordion.removeEventListener("click", this.handleClick);
