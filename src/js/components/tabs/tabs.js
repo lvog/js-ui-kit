@@ -2,16 +2,22 @@ export default class Tabs {
   constructor(options = {}) {
     this.tabsSelector = options.tabsSelector || ".tabs";
     this.animSpeed = options.animSpeed || 300;
+    this.destroyAbove = options.destroyAbove || null;
+    this.destroyBelow = options.destroyBelow || null;
 
+    this.tabsetSelector = ".tabset";
     this.tabButtonSelector = ".tab-opener";
-    this.tabBlockSelector = ".tab-block";
+    this.tabBlockSelector = ".tab-panel";
     this.activeClass = "active";
 
     this.tabs = document.querySelector(this.tabsSelector);
+    this.tabset = null;
     this.tabButtons = [];
     this.tabBlocks = [];
     this.prevTabButton = null;
     this.prevTabBlock = null;
+
+    this.isInitialized = false;
   }
 
   init() {
@@ -22,29 +28,63 @@ export default class Tabs {
       return;
     }
 
+    if (this.destroyAbove || this.destroyBelow) {
+      this.bindBreakpoint();
+      return;
+    }
+
+    this.initTabs();
+  }
+
+  initTabs() {
     this.findElements();
-    this.findActiveElements();
+    this.setActiveElements();
+    this.initAria();
     this.bindEvents();
+
+    this.isInitialized = true;
   }
 
   findElements() {
+    this.tabset = this.tabs.querySelector(this.tabsetSelector);
     this.tabButtons = this.tabs.querySelectorAll(this.tabButtonSelector);
     this.tabBlocks = this.tabs.querySelectorAll(this.tabBlockSelector);
   }
 
-  findActiveElements() {
-    const activeTabButton = this.tabs.querySelector(
-      `${this.tabButtonSelector}.${this.activeClass}`,
-    );
-    const activeTabBlock = this.tabs.querySelector(
-      `${this.tabBlockSelector}.${this.activeClass}`,
-    );
+  setActiveElements() {
+    const firstTabButton = this.tabButtons[0];
+    const firstTabBlock = this.tabBlocks[0];
 
-    this.prevTabButton = activeTabButton;
-    this.prevTabBlock = activeTabBlock;
+    firstTabButton.classList.add(this.activeClass);
+    firstTabBlock.classList.add(this.activeClass);
+
+    this.prevTabButton = firstTabButton;
+    this.prevTabBlock = firstTabBlock;
+  }
+
+  initAria() {
+    this.tabset.setAttribute("role", "tabset");
+
+    if (this.tabButtons.length !== this.tabBlocks.length) return;
+
+    this.tabButtons.forEach((button, index) => {
+      button.setAttribute("role", "tab");
+      button.setAttribute("aria-controls", `tab-block-${index + 1}`);
+      button.setAttribute(
+        "aria-selected",
+        button.classList.contains(this.activeClass),
+      );
+    });
+
+    this.tabBlocks.forEach((block, index) => {
+      block.setAttribute("role", "tabpanel");
+      block.setAttribute("id", `tab-block-${index + 1}`);
+    });
   }
 
   open(tabButton, tabBlock) {
+    if (!tabBlock || !tabButton) return;
+
     if (tabBlock._timer) {
       clearTimeout(tabBlock._timer);
     }
@@ -65,6 +105,8 @@ export default class Tabs {
   }
 
   close(tabButton, tabBlock) {
+    if (!tabBlock || !tabButton) return;
+
     if (tabBlock._timer) {
       clearTimeout(tabBlock._timer);
     }
@@ -93,7 +135,7 @@ export default class Tabs {
       const tabId = tabButton.getAttribute("aria-controls");
       const tabBlock = this.tabs.querySelector(`#${tabId}`);
 
-      const isActive = tabBlock.classList.contains(this.activeClass);
+      const isActive = tabButton.classList.contains(this.activeClass);
 
       if (isActive) return;
 
@@ -107,18 +149,50 @@ export default class Tabs {
     this.tabs.addEventListener("click", this.handleTabClick);
   }
 
+  bindBreakpoint() {
+    this.checkBreakpoint();
+    this.handleBreakpointResize = () => this.checkBreakpoint();
+    window.addEventListener("resize", this.handleBreakpointResize);
+  }
+
+  checkBreakpoint() {
+    const width = window.innerWidth;
+
+    const shouldDestroy =
+      (this.destroyAbove !== null && width >= this.destroyAbove) ||
+      (this.destroyBelow !== null && width <= this.destroyBelow);
+
+    if (shouldDestroy && this.isInitialized) {
+      this.destroy();
+      return;
+    }
+
+    if (!shouldDestroy && !this.isInitialized) {
+      this.initTabs();
+    }
+  }
+
   destroy() {
     this.tabs.removeEventListener("click", this.handleTabClick);
 
+    this.tabset.removeAttribute("role");
+
     this.tabButtons.forEach((button) => {
       button.classList.remove(this.activeClass);
+      button.removeAttribute("role");
       button.removeAttribute("aria-expanded");
       button.removeAttribute("aria-controls");
     });
 
-    this.tabBlocks.forEach((block) => block.classList.remove(this.activeClass));
+    this.tabBlocks.forEach((block) => {
+      block.classList.remove(this.activeClass);
+      block.removeAttribute("role");
+      block.removeAttribute("id");
+    });
 
     this.prevTabButton = null;
     this.prevTabBlock = null;
+
+    this.isInitialized = false;
   }
 }

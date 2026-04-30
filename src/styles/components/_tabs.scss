@@ -1,13 +1,13 @@
 @use "abstracts/mixins" as m;
 
-.tab {
-  &-list {
-    @include m.listReset;
-    display: flex;
-    flex-wrap: wrap;
-    margin: 0 -5px;
-  }
+.tabset {
+  @include m.listReset;
+  display: flex;
+  flex-wrap: wrap;
+  margin: 0 -5px;
+}
 
+.tab {
   &-item {
     padding: 5px;
   }
@@ -33,9 +33,10 @@
 
   &-content {
     overflow: hidden;
+    // background: var(--color-light-gray);
   }
 
-  &-block {
+  &-panel {
     display: none;
     padding: 15px;
 
