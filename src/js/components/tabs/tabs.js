@@ -63,7 +63,7 @@ export default class Tabs {
   }
 
   initAria() {
-    this.tabset.setAttribute("role", "tabset");
+    this.tabset.setAttribute("role", "tablist");
 
     if (this.tabButtons.length !== this.tabBlocks.length) return;
 
