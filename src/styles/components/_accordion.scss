@@ -46,6 +46,10 @@
     border: none;
     box-shadow: 0 1px 0 0 var(--color-light-gray);
 
+    @include m.hover {
+      color: var(--color-dark-orange);
+    }
+
     i {
       @include m.transition(transform);
       font-size: 10px;

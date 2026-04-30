@@ -17,6 +17,7 @@ A lightweight, dependency-free JavaScript accordion component with smooth height
 | Option            | Type             | Default      | Description                                                |
 | ----------------- | ---------------- | ------------ | ---------------------------------------------------------- |
 | accordionSelector | `string`         | `.accordion` | Root element selector                                      |
+| openFirst         | `boolean`        | `false`      | Open first item on init                                    |
 | collapsible       | `boolean`        | `false`      | Allow closing active item                                  |
 | scrollToActive    | `boolean`        | `false`      | Scroll to opened item                                      |
 | scrollOffset      | `number`         | `0`          | Offset for scroll position, useful with fixed headers (px) |
@@ -36,6 +37,14 @@ const accordion = new Accordion();
 accordion.init();
 ```
 
+#### First active item
+
+```
+const accordion = new Accordion({
+  openFirst: true,
+});
+```
+
 #### Collapsible accordion
 
 ```
@@ -43,6 +52,8 @@ const accordion = new Accordion({
   collapsible: true,
 });
 ```
+
+> Can also be used as a simple open/close toggle with slide animation by using a single item.
 
 #### Scroll to active item
 
@@ -65,60 +76,25 @@ const accordion = new Accordion({
 ```
 <ul class="accordion">
   <li class="accordion-item">
-    <button
-      class="accordion-opener"
-      type="button"
-      aria-expanded="false"
-      aria-controls="accordion-slide-1"
-    >
+    <button class="accordion-opener" type="button">
       Accordion Item #1
     </button>
-    <div
-      id="accordion-slide-1"
-      class="accordion-slide"
-    >
+    <div class="accordion-slide">
       <div class="text-block">
         Content 1
       </div>
     </div>
   </li>
   <li class="accordion-item">
-    <button
-      class="accordion-opener"
-      type="button"
-      aria-expanded="false"
-      aria-controls="accordion-slide-2"
-    >
+    <button class="accordion-opener" type="button">
       Accordion Item #2
     </button>
-    <div
-      id="accordion-slide-2"
-      class="accordion-slide"
-    >
+    <div class="accordion-slide">
       <div class="text-block">
         Content 2
       </div>
     </div>
   </li>
-</ul>
-```
-
-#### Default active item
-
-Add `active` class to `accordion-item` and set `aria-expanded="true"` on `accordion-opener`:
-
-```
-<ul class="accordion">
-  <li class="accordion-item active">
-    <button
-      class="accordion-opener"
-      type="button"
-      aria-expanded="true"
-      aria-controls="accordion-slide-1"
-    >
-      Accordion Item #1
-    </button>
-    ...
 </ul>
 ```
 
@@ -143,3 +119,7 @@ style.scss
 - Accordion structure must match the required HTML markup
 - Each opener should have aria-controls linked to slide id
 - SCSS styles must be included
+
+## Limitations
+
+- Multi-level accordion not supported

@@ -2,12 +2,13 @@
  * Accordion configuration options
  * @typedef {Object} AccordionOptions
  * @property {string} [accordionSelector] - Root element selector
+ * @property {boolean} [openFirst] - Open first item on init
  * @property {boolean} [collapsible] - Allow closing active item
  * @property {boolean} [scrollToActive] - Scroll to opened item
  * @property {number} [scrollOffset] - Offset for scroll position (px)
  * @property {number} [animSpeed] - Animation duration (ms)
- * @property {number|null} [destroyAbove] - Disable accordion above this width
- * @property {number|null} [destroyBelow] - Disable accordion below this width
+ * @property {number|null} [destroyAbove] - Disable accordion above this width (px)
+ * @property {number|null} [destroyBelow] - Disable accordion below this width (px)
  */
 
 export default class Accordion {
@@ -15,6 +16,7 @@ export default class Accordion {
     // User options
     this.accordionSelector = options.accordionSelector || ".accordion";
     this.animSpeed = options.animSpeed || 500;
+    this.openFirst = options.openFirst || false;
     this.collapsible = options.collapsible || false;
     this.scrollToActive = options.scrollToActive || false;
     this.scrollOffset = options.scrollOffset || 0;
@@ -56,7 +58,8 @@ export default class Accordion {
 
   initAccordion() {
     this.findElements();
-    this.findActiveElement();
+    this.openFirstItem();
+    this.initAria();
     this.bindEvents();
 
     this.isInitialized = true;
@@ -70,14 +73,28 @@ export default class Accordion {
     );
   }
 
-  findActiveElement() {
-    const activeElement = this.accordion.querySelector(
-      `${this.accordionItemSelector}.${this.activeClass}`,
-    );
+  openFirstItem() {
+    if (!this.openFirst) return;
 
-    if (!activeElement) return;
+    const activeElement = this.accordionItems[0];
+    activeElement.classList.add(this.activeClass);
 
     this.prevAccordionItem = activeElement;
+  }
+
+  initAria() {
+    this.accordionItems.forEach((holder, index) => {
+      const opener = holder.querySelector(this.openerSelector);
+      const slide = holder.querySelector(this.slideSelector);
+
+      opener.setAttribute("aria-controls", `accordion-slide-${index + 1}`);
+      opener.setAttribute(
+        "aria-expanded",
+        holder.classList.contains(this.activeClass),
+      );
+
+      slide.setAttribute("id", `accordion-slide-${index + 1}`);
+    });
   }
 
   // Core Logic
@@ -241,6 +258,8 @@ export default class Accordion {
       const slide = holder.querySelector(this.slideSelector);
       slide.removeAttribute("style");
     });
+
+    this.prevAccordionItem = null;
 
     this.isInitialized = false;
   }
