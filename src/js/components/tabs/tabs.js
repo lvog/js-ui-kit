@@ -90,7 +90,7 @@ export default class Tabs {
     }
 
     tabButton.classList.add(this.activeClass);
-    tabButton.setAttribute("aria-expanded", "true");
+    tabButton.setAttribute("aria-selected", "true");
 
     tabBlock.style.opacity = 0;
     tabBlock.style.transition = `opacity ${this.animSpeed}ms`;
@@ -112,7 +112,7 @@ export default class Tabs {
     }
 
     tabButton.classList.remove(this.activeClass);
-    tabButton.setAttribute("aria-expanded", "false");
+    tabButton.setAttribute("aria-selected", "false");
 
     tabBlock.style.opacity = 1;
     tabBlock.style.transition = `opacity ${this.animSpeed}ms`;
@@ -180,7 +180,7 @@ export default class Tabs {
     this.tabButtons.forEach((button) => {
       button.classList.remove(this.activeClass);
       button.removeAttribute("role");
-      button.removeAttribute("aria-expanded");
+      button.removeAttribute("aria-selected");
       button.removeAttribute("aria-controls");
     });
 
