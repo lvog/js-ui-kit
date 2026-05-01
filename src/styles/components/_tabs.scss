@@ -13,7 +13,7 @@
   }
 
   &-opener {
-    @include m.transition(color background border-color);
+    @include m.transition(color background opacity border-color);
     padding: 15px;
     background: transparent;
     border: 1px solid var(--color-light-gray);
@@ -29,11 +29,16 @@
       background: var(--color-orange);
       border-color: var(--color-orange);
     }
+
+    &.disabled {
+      pointer-events: none;
+      opacity: 0.5;
+    }
   }
 
   &-content {
+    will-change: height;
     overflow: hidden;
-    // background: var(--color-light-gray);
   }
 
   &-panel {

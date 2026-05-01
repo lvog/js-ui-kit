@@ -1,23 +1,30 @@
 export default class Tabs {
   constructor(options = {}) {
     this.tabsSelector = options.tabsSelector || ".tabs";
+    this.animate = options.animate ?? true;
     this.animSpeed = options.animSpeed || 300;
+    this.animateHeight =
+      options.animateHeight && this.animate ? options.animateHeight : false;
     this.destroyAbove = options.destroyAbove || null;
     this.destroyBelow = options.destroyBelow || null;
 
     this.tabsetSelector = ".tabset";
     this.tabButtonSelector = ".tab-opener";
+    this.tabContentSelector = ".tab-content";
     this.tabBlockSelector = ".tab-panel";
     this.activeClass = "active";
+    this.disabledClass = "disabled";
 
     this.tabs = document.querySelector(this.tabsSelector);
     this.tabset = null;
+    this.tabContent = null;
     this.tabButtons = [];
     this.tabBlocks = [];
     this.prevTabButton = null;
     this.prevTabBlock = null;
 
     this.isInitialized = false;
+    this.isAnimating = false;
   }
 
   init() {
@@ -38,6 +45,21 @@ export default class Tabs {
 
   initTabs() {
     this.findElements();
+
+    if (this.tabButtons.length < 2 || this.tabBlocks.length < 2) {
+      console.error(
+        `Tabs: requires at least 2 tabs, but found ${this.tabButtons.length} buttons and ${this.tabBlocks.length} blocks`,
+      );
+      return;
+    }
+
+    if (this.tabButtons.length !== this.tabBlocks.length) {
+      console.error(
+        `Tabs: number of buttons (${this.tabButtons.length}) does not match number of tabs (${this.tabBlocks.length})`,
+      );
+      return;
+    }
+
     this.setActiveElements();
     this.initAria();
     this.bindEvents();
@@ -47,6 +69,7 @@ export default class Tabs {
 
   findElements() {
     this.tabset = this.tabs.querySelector(this.tabsetSelector);
+    this.tabContent = this.tabs.querySelector(this.tabContentSelector);
     this.tabButtons = this.tabs.querySelectorAll(this.tabButtonSelector);
     this.tabBlocks = this.tabs.querySelectorAll(this.tabBlockSelector);
   }
@@ -65,8 +88,6 @@ export default class Tabs {
   initAria() {
     this.tabset.setAttribute("role", "tablist");
 
-    if (this.tabButtons.length !== this.tabBlocks.length) return;
-
     this.tabButtons.forEach((button, index) => {
       button.setAttribute("role", "tab");
       button.setAttribute("aria-controls", `tab-block-${index + 1}`);
@@ -82,68 +103,98 @@ export default class Tabs {
     });
   }
 
-  open(tabButton, tabBlock) {
-    if (!tabBlock || !tabButton) return;
-
-    if (tabBlock._timer) {
-      clearTimeout(tabBlock._timer);
-    }
-
-    tabButton.classList.add(this.activeClass);
-    tabButton.setAttribute("aria-selected", "true");
-
-    tabBlock.style.opacity = 0;
-    tabBlock.style.transition = `opacity ${this.animSpeed}ms`;
-
-    tabBlock.offsetHeight;
-    tabBlock.style.opacity = 1;
-
-    tabBlock._timer = setTimeout(() => {
-      tabBlock.classList.add(this.activeClass);
-      tabBlock.removeAttribute("style");
-    }, this.animSpeed);
-  }
-
-  close(tabButton, tabBlock) {
-    if (!tabBlock || !tabButton) return;
-
-    if (tabBlock._timer) {
-      clearTimeout(tabBlock._timer);
-    }
-
-    tabButton.classList.remove(this.activeClass);
-    tabButton.setAttribute("aria-selected", "false");
-
-    tabBlock.style.opacity = 1;
-    tabBlock.style.transition = `opacity ${this.animSpeed}ms`;
-
-    tabBlock.offsetHeight;
-    tabBlock.style.opacity = 0;
-
-    tabBlock._timer = setTimeout(() => {
-      tabBlock.removeAttribute("style");
-      tabBlock.classList.remove(this.activeClass);
-    }, this.animSpeed);
-  }
-
   bindEvents() {
     this.handleTabClick = (e) => {
       const tabButton = e.target.closest(this.tabButtonSelector);
-
       if (!tabButton) return;
+      if (this.animate && this.isAnimating) return;
 
       const tabId = tabButton.getAttribute("aria-controls");
-      const tabBlock = this.tabs.querySelector(`#${tabId}`);
+      const nextTab = this.tabs.querySelector(`#${tabId}`);
 
-      const isActive = tabButton.classList.contains(this.activeClass);
+      if (nextTab === this.prevTabBlock) return;
 
-      if (isActive) return;
+      if (this.animate) {
+        this.isAnimating = true;
+        this.tabButtons.forEach((btn) => btn.classList.add(this.disabledClass));
+      }
 
-      this.close(this.prevTabButton, this.prevTabBlock);
-      this.open(tabButton, tabBlock);
+      const tabsHolder = this.tabContent;
+      const prevTab = this.prevTabBlock;
+
+      // Without animation - just switch active classes
+      if (!this.animate) {
+        prevTab.classList.remove(this.activeClass);
+        nextTab.classList.add(this.activeClass);
+
+        this.prevTabButton.classList.remove(this.activeClass);
+        this.prevTabButton.setAttribute("aria-selected", "false");
+        tabButton.classList.add(this.activeClass);
+        tabButton.setAttribute("aria-selected", "true");
+
+        this.prevTabButton = tabButton;
+        this.prevTabBlock = nextTab;
+        return;
+      }
+
+      if (this.animateHeight) {
+        // Measure the height of the new tab for tab content holder
+        nextTab.classList.add(this.activeClass);
+        const endHeight = nextTab.offsetHeight;
+        nextTab.classList.remove(this.activeClass);
+
+        // Animate the height of the tab content holder
+        tabsHolder.style.height = `${tabsHolder.offsetHeight}px`;
+        // Reflow
+        tabsHolder.offsetHeight;
+        tabsHolder.style.transition = `height ${this.animSpeed}ms`;
+        tabsHolder.style.height = `${endHeight}px`;
+      }
+
+      // Hide the previous tab
+      prevTab.style.opacity = 1;
+      // Reflow
+      prevTab.offsetHeight;
+      prevTab.style.transition = `opacity ${this.animSpeed / 2}ms`;
+      prevTab.style.opacity = 0;
+
+      // After the previous tab disappears — show the new one
+      setTimeout(() => {
+        prevTab.classList.remove(this.activeClass);
+        prevTab.removeAttribute("style");
+
+        // Show the new tab with animation
+        nextTab.classList.add(this.activeClass);
+        nextTab.style.opacity = 0;
+        // Reflow
+        nextTab.offsetHeight;
+        nextTab.style.transition = `opacity ${this.animSpeed}ms`;
+        nextTab.style.opacity = 1;
+
+        nextTab.addEventListener(
+          "transitionend",
+          () => {
+            nextTab.removeAttribute("style");
+            this.isAnimating = false;
+            this.tabButtons.forEach((btn) =>
+              btn.classList.remove(this.disabledClass),
+            );
+
+            if (this.animateHeight) {
+              tabsHolder.removeAttribute("style");
+            }
+          },
+          { once: true },
+        );
+      }, this.animSpeed / 2);
+
+      this.prevTabButton.classList.remove(this.activeClass);
+      this.prevTabButton.setAttribute("aria-selected", "false");
+      tabButton.classList.add(this.activeClass);
+      tabButton.setAttribute("aria-selected", "true");
 
       this.prevTabButton = tabButton;
-      this.prevTabBlock = tabBlock;
+      this.prevTabBlock = nextTab;
     };
 
     this.tabs.addEventListener("click", this.handleTabClick);
@@ -178,7 +229,7 @@ export default class Tabs {
     this.tabset.removeAttribute("role");
 
     this.tabButtons.forEach((button) => {
-      button.classList.remove(this.activeClass);
+      button.classList.remove(this.activeClass, this.disabledClass);
       button.removeAttribute("role");
       button.removeAttribute("aria-selected");
       button.removeAttribute("aria-controls");
@@ -194,5 +245,6 @@ export default class Tabs {
     this.prevTabBlock = null;
 
     this.isInitialized = false;
+    this.isAnimating = false;
   }
 }
