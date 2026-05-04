@@ -1,5 +1,17 @@
+/**
+ * Tabs configuration options
+ * @typedef {Object} TabsOptions
+ * @property {string} [tabsSelector] - Root element selector
+ * @property {boolean} [animate] - Enable/disable animations
+ * @property {number} [animSpeed] - Animation duration (ms)
+ * @property {boolean} [animateHeight] - Animate tab content height
+ * @property {number|null} [destroyAbove] - Disable tabs above this width (px)
+ * @property {number|null} [destroyBelow] - Disable tabs below this width (px)
+ */
+
 export default class Tabs {
   constructor(options = {}) {
+    // User options
     this.tabsSelector = options.tabsSelector || ".tabs";
     this.animate = options.animate ?? true;
     this.animSpeed = options.animSpeed || 300;
@@ -8,13 +20,16 @@ export default class Tabs {
     this.destroyAbove = options.destroyAbove || null;
     this.destroyBelow = options.destroyBelow || null;
 
+    // Internal selectors
     this.tabsetSelector = ".tabset";
     this.tabButtonSelector = ".tab-opener";
     this.tabContentSelector = ".tab-content";
     this.tabBlockSelector = ".tab-panel";
+
     this.activeClass = "active";
     this.disabledClass = "disabled";
 
+    // DOM elements
     this.tabs = document.querySelector(this.tabsSelector);
     this.tabset = null;
     this.tabContent = null;
@@ -27,6 +42,7 @@ export default class Tabs {
     this.isAnimating = false;
   }
 
+  // Initialization
   init() {
     if (!this.tabs) {
       console.error(
@@ -67,6 +83,8 @@ export default class Tabs {
     this.isInitialized = true;
   }
 
+  // Setup
+
   findElements() {
     this.tabset = this.tabs.querySelector(this.tabsetSelector);
     this.tabContent = this.tabs.querySelector(this.tabContentSelector);
@@ -86,6 +104,8 @@ export default class Tabs {
   }
 
   initAria() {
+    if (!this.tabset) return;
+
     this.tabset.setAttribute("role", "tablist");
 
     this.tabButtons.forEach((button, index) => {
@@ -102,6 +122,9 @@ export default class Tabs {
       block.setAttribute("id", `tab-block-${index + 1}`);
     });
   }
+
+  // Events
+  // All event listeners (user interaction)
 
   bindEvents() {
     this.handleTabClick = (e) => {
@@ -206,6 +229,9 @@ export default class Tabs {
     window.addEventListener("resize", this.handleBreakpointResize);
   }
 
+  // Responsive
+  // Handles breakpoint-based behavior
+
   checkBreakpoint() {
     const width = window.innerWidth;
 
@@ -222,6 +248,9 @@ export default class Tabs {
       this.initTabs();
     }
   }
+
+  // Destroy
+  // Cleanup and reset
 
   destroy() {
     this.tabs.removeEventListener("click", this.handleTabClick);
