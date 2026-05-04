@@ -14,7 +14,7 @@ export default class Tabs {
     // User options
     this.tabsSelector = options.tabsSelector || ".tabs";
     this.animate = options.animate ?? true;
-    this.animSpeed = options.animSpeed || 300;
+    this.animSpeed = options.animSpeed || 500;
     this.animateHeight =
       options.animateHeight && this.animate ? options.animateHeight : false;
     this.destroyAbove = options.destroyAbove || null;
