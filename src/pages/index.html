@@ -222,13 +222,154 @@
         </section>
         <section class="section">
           <div class="container">
-            <h2>Text</h2>
-            <p>
-              Lorem, ipsum dolor sit amet consectetur adipisicing elit. Non
-              laboriosam hic beatae at dolores commodi aperiam dolor, voluptates
-              culpa quidem soluta molestias accusantium omnis quasi maiores
-              incidunt! Nostrum, corporis saepe!
-            </p>
+            <h2>Form validation</h2>
+            <form class="form-validation" action="#">
+              <div class="form-group">
+                <label for="name">Name *</label>
+                <input
+                  id="name"
+                  type="text"
+                  name="name"
+                  placeholder="Name"
+                  autocomplete="name"
+                  data-type="text"
+                  data-min="2"
+                  data-pattern="^[a-zA-Z\'\- ]+$"
+                  data-required="true"
+                />
+                <span class="error-message"
+                  >This field is required. Please use only letters, hyphens, and
+                  apostrophes. Must be at least 2 characters.
+                </span>
+              </div>
+              <div class="form-group">
+                <label for="email">Email *</label>
+                <input
+                  id="email"
+                  type="email"
+                  name="email"
+                  placeholder="Email"
+                  autocomplete="email"
+                  data-type="email"
+                  data-required="true"
+                />
+                <span class="error-message"
+                  >This field is required. Please enter a valid email
+                  address.</span
+                >
+              </div>
+              <div class="form-group">
+                <label for="message">Message</label>
+                <textarea
+                  id="message"
+                  name="message"
+                  placeholder="Message"
+                  autocomplete="off"
+                ></textarea>
+              </div>
+              <div class="form-group">
+                <label for="select">Select *</label>
+                <div class="custom-select">
+                  <select id="select" name="select" data-required="true">
+                    <option value="">Select an option</option>
+                    <option value="option1">Option 1</option>
+                    <option value="option2">Option 2</option>
+                    <option value="option3">Option 3</option>
+                  </select>
+                </div>
+                <span class="error-message">This field is required.</span>
+              </div>
+              <div class="form-group">
+                <span class="label">Choose one *</span>
+                <div class="form-control">
+                  <label class="custom-radio">
+                    <input
+                      type="radio"
+                      name="radio"
+                      value="option1"
+                      data-required="true"
+                    /><span class="checkmark"></span>Option 1</label
+                  >
+                </div>
+                <div class="form-control">
+                  <label class="custom-radio">
+                    <input
+                      type="radio"
+                      name="radio"
+                      value="option2"
+                      data-required="true"
+                    /><span class="checkmark"></span>Option 2</label
+                  >
+                </div>
+                <div class="form-control">
+                  <label class="custom-radio">
+                    <input
+                      type="radio"
+                      name="radio"
+                      value="option3"
+                      data-required="true"
+                    /><span class="checkmark"></span>Option 3</label
+                  >
+                </div>
+                <span class="error-message">This field is required.</span>
+              </div>
+              <div class="form-group">
+                <span class="label">Choose*</span>
+                <div class="form-control">
+                  <label class="custom-checkbox">
+                    <input
+                      type="checkbox"
+                      name="app"
+                      value="New"
+                      data-required="true"
+                    /><span class="checkmark"></span>First option</label
+                  >
+                </div>
+                <div class="form-control">
+                  <label class="custom-checkbox">
+                    <input
+                      type="checkbox"
+                      name="app"
+                      value="Old"
+                      data-required="true"
+                    /><span class="checkmark"></span>Second option</label
+                  >
+                </div>
+                <span class="error-message">This field is required.</span>
+              </div>
+              <div class="form-group">
+                <label for="password">Password</label>
+                <input
+                  id="password"
+                  type="password"
+                  name="password"
+                  placeholder="Password"
+                  data-type="password"
+                  data-required="true"
+                />
+                <span class="error-message"
+                  >This field is required. Password must be at least 8
+                  characters long and include at least one uppercase letter, one
+                  lowercase letter, one number, and one special character
+                  (@$!%*?&)</span
+                >
+              </div>
+              <div class="form-group">
+                <label class="custom-checkbox">
+                  <input
+                    type="checkbox"
+                    name="checkbox"
+                    value="I agree to the terms and conditions"
+                    data-required="true"
+                  />
+                  <span class="checkmark"></span>
+                  I agree to the terms and conditions *
+                </label>
+              </div>
+              <div class="btn-holder">
+                <button class="btn" type="submit">Send Message</button>
+              </div>
+            </form>
           </div>
         </section>
       </main>

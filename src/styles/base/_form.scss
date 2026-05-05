@@ -1,36 +1,164 @@
+@use "abstracts/variables" as v;
 @use "abstracts/mixins" as m;
 
+.form-group {
+  margin-bottom: var(--base-margin-bottom);
+
+  &.input-error {
+    .error-message {
+      display: block;
+    }
+  }
+}
+
+label,
+.label {
+  display: block;
+  font-size: var(--label-font-size);
+  line-height: var(--label-line-height);
+  font-weight: var(--label-font-weight);
+  margin-bottom: 4px;
+}
+
 input[type="text"],
+input[type="number"],
+input[type="tel"],
+input[type="email"],
+input[type="search"],
+input[type="password"],
+textarea,
+select {
+  @include m.transition(border-color box-shadow);
+  appearance: none;
+  width: 100%;
+  height: var(--input-height);
+  color: var(--input-color);
+  border: 1px solid var(--input-border-color);
+  border-radius: var(--input-border-radius);
+
+  .input-error & {
+    border-color: var(--input-error-border-color);
+  }
+}
+
+input[type="text"],
+input[type="number"],
 input[type="tel"],
 input[type="email"],
 input[type="search"],
 input[type="password"],
 textarea {
-  @include m.transition(border-color);
-  appearance: none;
-  width: 100%;
-  height: var(--input-height);
-  color: var(--input-color);
   padding: var(--input-padding);
-  margin-bottom: var(--base-margin-bottom);
-  border: 1px solid var(--input-border-color);
 
   &::placeholder {
     color: var(--input-placeholder-color);
   }
 
   &:focus-visible {
-    border-color: var(--input-hover-border-color);
     outline: none;
-  }
-
-  @include m.hover {
-    border-color: var(--input-hover-border-color);
+    box-shadow: var(--input-focus-shadow);
   }
 }
 
 textarea {
+  min-height: 115px;
   resize: none;
+}
+
+.custom-select {
+  position: relative;
+
+  &::before {
+    content: "";
+    width: 10px;
+    height: 10px;
+    position: absolute;
+    top: calc(50% - 2px);
+    right: 15px;
+    transform: translateY(-50%) rotate(45deg);
+    border-right: 1px solid var(--color-black);
+    border-bottom: 1px solid var(--color-black);
+    pointer-events: none;
+  }
+
+  select {
+    padding: 12px 40px 12px 15px;
+    outline: none;
+    cursor: pointer;
+  }
+}
+
+.custom-radio,
+.custom-checkbox {
+  display: inline-flex;
+  align-items: center;
+  line-height: 1;
+
+  input[type="radio"],
+  input[type="checkbox"] {
+    position: absolute;
+    opacity: 0;
+  }
+
+  .checkmark {
+    @include m.transition(background border-color);
+    width: 20px;
+    height: 20px;
+    margin-right: 10px;
+    border: 1px solid var(--color-black);
+    position: relative;
+
+    &::before {
+      @include m.transition(opacity);
+      content: "";
+      position: absolute;
+      opacity: 0;
+    }
+  }
+}
+
+input[type="radio"]:checked ~ .checkmark,
+input[type="checkbox"]:checked ~ .checkmark {
+  background: var(--color-blue);
+  border-color: var(--color-blue);
+}
+
+input[type="radio"]:checked ~ .checkmark::before,
+input[type="checkbox"]:checked ~ .checkmark::before {
+  opacity: 1;
+}
+
+.custom-radio {
+  .checkmark {
+    border-radius: 50%;
+    overflow: hidden;
+
+    &::before {
+      width: 8px;
+      height: 8px;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: var(--color-white);
+      border-radius: 50%;
+    }
+  }
+}
+
+.custom-checkbox {
+  .checkmark {
+    border-radius: 3px;
+
+    &::before {
+      width: 6px;
+      height: 12px;
+      top: 2px;
+      left: 7px;
+      border-right: 2px solid var(--color-white);
+      border-bottom: 2px solid var(--color-white);
+      transform: rotate(45deg);
+    }
+  }
 }
 
 button,
@@ -39,4 +167,13 @@ input[type="reset"],
 input[type="submit"] {
   appearance: none;
   cursor: pointer;
+
+  &:focus-visible {
+    outline: none;
+  }
+}
+
+.error-message {
+  display: none;
+  color: var(--color-red);
 }

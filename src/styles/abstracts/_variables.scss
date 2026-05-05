@@ -11,6 +11,7 @@ $breakpoint-widescreen: 1200px;
   --color-orange: #ff8904;
   --color-dark-orange: #e05504;
   --color-red: #d60606;
+  --color-blue: #0d6efd;
 
   --base-font-family: "Montserrat", sans-serif;
   --base-font-size: 14px;
@@ -52,7 +53,12 @@ $breakpoint-widescreen: 1200px;
   --input-placeholder-color: var(--color-gray);
   --input-padding: 10px 15px;
   --input-border-color: var(--color-black);
-  --input-hover-border-color: var(--color-orange);
+  --input-border-radius: 8px;
+
+  --input-focus-shadow: 0 0 4px var(--color-orange);
+
+  --input-error-color: var(--color-red);
+  --input-error-border-color: var(--color-red);
 
   --base-transition-duration: 0.3s;
   --base-transition-timing-function: ease-in-out;
