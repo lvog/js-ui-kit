@@ -8,6 +8,7 @@ export default class FormValidation {
     this.pattern = {
       email: /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/,
       number: /^-?\d+(\.\d+)?$/,
+      tel: /^\+?\d[\d\s\-()]{8,}\d$/,
       password:
         /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/,
     };
@@ -95,6 +96,7 @@ export default class FormValidation {
     if (isValid) {
       switch (type) {
         case "email":
+        case "tel":
         case "password":
           isValid = this.validateFormat(type, value, pattern);
           break;
