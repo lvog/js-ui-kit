@@ -370,6 +370,31 @@
                 >
               </div>
               <div class="form-group">
+                <label for="password2">Password2</label>
+                <input
+                  id="password2"
+                  type="password"
+                  name="password2"
+                  placeholder="Password2"
+                  data-type="text"
+                  data-required="true"
+                />
+                <span class="error-message">This field is required.</span>
+              </div>
+              <div class="form-group">
+                <label for="confirm-password2">Confirm password2</label>
+                <input
+                  id="confirm-password2"
+                  type="password"
+                  name="confirm password2"
+                  placeholder="Confirm Password2"
+                  data-type="text"
+                  data-confirm="#password2"
+                  data-required="true"
+                />
+                <span class="error-message">Passwords don't match.</span>
+              </div>
+              <div class="form-group">
                 <label class="custom-checkbox">
                   <input
                     type="checkbox"

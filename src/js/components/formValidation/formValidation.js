@@ -57,6 +57,7 @@ export default class FormValidation {
     if (!this.fields.includes(field)) return;
 
     this.validateField(field);
+    this.validateConfirmFields(field.id);
     this.checkErrors();
   }
 
@@ -112,6 +113,10 @@ export default class FormValidation {
       }
     }
 
+    if (isValid && field.dataset.confirm) {
+      isValid = this.validateConfirm(field.dataset.confirm, value);
+    }
+
     const fieldGroup = this.getFieldGroup(field, type);
     this.toggleError(fieldGroup, isValid);
 
@@ -152,6 +157,24 @@ export default class FormValidation {
   validateFormat(type, value, pattern) {
     const regexp = pattern ? new RegExp(pattern) : this.pattern[type];
     return regexp.test(value);
+  }
+
+  validateConfirmFields(id) {
+    if (!id) return;
+
+    const confirmField = this.form.querySelector(`[data-confirm="#${id}"]`);
+
+    if (!confirmField) return;
+
+    this.validateField(confirmField);
+  }
+
+  validateConfirm(selector, value) {
+    const confirmField = this.form.querySelector(selector);
+
+    if (!confirmField) return false;
+
+    return confirmField.value.trim() === value;
   }
 
   getFieldGroup(field, type) {
