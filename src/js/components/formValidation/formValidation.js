@@ -13,6 +13,19 @@ export default class FormValidation {
         /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/,
     };
 
+    this.messages = {
+      required: "This field is required.",
+      email: "Please enter a valid email address.",
+      tel: "Please enter a valid phone number.",
+      password:
+        "Password must be at least 8 characters long and include at least one uppercase letter, one lowercase letter, one number, and one special character",
+      number: "Please enter a valid number.",
+      min: (min) => `Must be at least ${min} characters.`,
+      max: (max) => `Must be no more than ${max} characters.`,
+      confirm: "Passwords don't match.",
+      pattern: "Please enter a valid value.",
+    };
+
     this.requiredField = "[data-required='true']";
 
     this.form = document.querySelector(this.formSelector);
