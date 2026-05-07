@@ -17,6 +17,7 @@ export default class FormValidation {
 
     this.form = document.querySelector(this.formSelector);
     this.fields = [];
+    this.isValidForm = false;
   }
 
   init() {
@@ -37,43 +38,51 @@ export default class FormValidation {
   }
 
   bindEvents() {
-    this.form.addEventListener("submit", (e) => {
+    this.handleInput = (e) => {
+      const field = e.target;
+      if (!this.fields.includes(field)) return;
+
+      const type = this.getType(field);
+
+      if ((type === "radio" || type === "checkbox") && e.type === "blur") {
+        return;
+      }
+
+      this.validateField(field);
+      this.validateConfirmFields(field.id);
+      this.checkErrors();
+    };
+
+    this.handleSubmit = (e) => {
       e.preventDefault();
 
-      const isValid = this.validateForm();
+      let isValid = true;
 
-      if (isValid) {
-        this.form.reset();
+      this.fields.forEach((field) => {
+        const valid = this.validateField(field);
+        if (!valid) isValid = false;
+      });
+
+      if (this.addClassToForm) {
+        this.form.classList.toggle(this.addClassToForm, !isValid);
       }
-    });
 
-    this.form.addEventListener("input", (e) => this.handleValidation(e));
-    this.form.addEventListener("change", (e) => this.handleValidation(e));
-    this.form.addEventListener("blur", (e) => this.handleValidation(e), true);
+      this.isValidForm = isValid;
+
+      this.resetForm();
+    };
+
+    this.form.addEventListener("submit", this.handleSubmit);
+    this.form.addEventListener("input", this.handleInput);
+    this.form.addEventListener("change", this.handleInput);
+    this.form.addEventListener("blur", this.handleInput, true);
   }
 
-  handleValidation(e) {
-    const field = e.target;
-    if (!this.fields.includes(field)) return;
-
-    this.validateField(field);
-    this.validateConfirmFields(field.id);
-    this.checkErrors();
-  }
-
-  validateForm() {
-    let isValid = true;
-
-    this.fields.forEach((field) => {
-      const valid = this.validateField(field);
-      if (!valid) isValid = false;
-    });
-
-    if (this.addClassToForm) {
-      this.form.classList.toggle(this.addClassToForm, !isValid);
+  resetForm() {
+    if (this.isValidForm) {
+      this.form.reset();
+      this.isValidForm = false;
     }
-
-    return isValid;
   }
 
   validateField(field) {
@@ -241,11 +250,31 @@ export default class FormValidation {
     if (!formGroup) {
       console.error(
         `FormValidation: no parent "${this.parentSelector}" found for`,
-        field,
+        fields,
       );
       return;
     }
 
     formGroup.classList.toggle(this.errorClass, !isValid);
+  }
+
+  destroy() {
+    this.form.removeEventListener("submit", this.handleSubmit);
+    this.form.removeEventListener("input", this.handleInput);
+    this.form.removeEventListener("change", this.handleInput);
+    this.form.removeEventListener("blur", this.handleInput, true);
+
+    if (this.addClassToForm) {
+      this.form.classList.remove(this.addClassToForm);
+    }
+
+    this.form
+      .querySelectorAll(`.${this.errorClass}`)
+      .forEach((el) => el.classList.remove(this.errorClass));
+
+    this.form.removeAttribute("novalidate");
+
+    this.fields = [];
+    this.isValidForm = false;
   }
 }
