@@ -82,6 +82,9 @@ export default class FormValidation {
       }
 
       if (flag) {
+        const data = this.getFormData();
+
+        console.log(data);
         this.form.reset();
       }
     };
@@ -316,6 +319,23 @@ export default class FormValidation {
     if (!errors.length) {
       this.form.classList.remove(this.addClassToForm);
     }
+  }
+
+  getFormData() {
+    const formData = new FormData(this.form);
+    const data = {};
+
+    for (const [key, value] of formData.entries()) {
+      if (data[key]) {
+        data[key] = Array.isArray(data[key])
+          ? [...data[key], value]
+          : [data[key], value];
+      } else {
+        data[key] = value;
+      }
+    }
+
+    return data;
   }
 
   toggleError(fields, result) {
