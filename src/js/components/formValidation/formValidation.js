@@ -4,6 +4,8 @@ export default class FormValidation {
     this.errorClass = options.errorClass || "input-error";
     this.parentSelector = options.errorParentSelector || ".form-group";
     this.addClassToForm = options.addClassToForm || null;
+    this.addErrors = options.addErrors ?? true;
+    this.errorMessageClass = options.errorMessageClass || "error-message";
 
     this.pattern = {
       email: /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/,
@@ -30,7 +32,6 @@ export default class FormValidation {
 
     this.form = document.querySelector(this.formSelector);
     this.fields = [];
-    this.isValidForm = false;
   }
 
   init() {
@@ -69,33 +70,26 @@ export default class FormValidation {
     this.handleSubmit = (e) => {
       e.preventDefault();
 
-      let isValid = true;
+      let flag = true;
 
       this.fields.forEach((field) => {
-        const valid = this.validateField(field);
-        if (!valid) isValid = false;
+        const result = this.validateField(field);
+        if (!result.isValid) flag = false;
       });
 
       if (this.addClassToForm) {
-        this.form.classList.toggle(this.addClassToForm, !isValid);
+        this.form.classList.toggle(this.addClassToForm, !flag);
       }
 
-      this.isValidForm = isValid;
-
-      this.resetForm();
+      if (flag) {
+        this.form.reset();
+      }
     };
 
     this.form.addEventListener("submit", this.handleSubmit);
     this.form.addEventListener("input", this.handleInput);
     this.form.addEventListener("change", this.handleInput);
     this.form.addEventListener("blur", this.handleInput, true);
-  }
-
-  resetForm() {
-    if (this.isValidForm) {
-      this.form.reset();
-      this.isValidForm = false;
-    }
   }
 
   validateField(field) {
@@ -110,75 +104,125 @@ export default class FormValidation {
       ? Number(field.dataset.max)
       : null;
 
-    let isValid = true;
+    let result = {
+      isValid: true,
+      errorMessage: "",
+    };
 
     if (!value || !value.length) {
-      isValid = false;
+      result.isValid = false;
+      result.errorMessage = this.messages.required;
     }
 
-    if (isValid) {
+    if (result.isValid) {
       switch (type) {
         case "email":
         case "tel":
         case "password":
-          isValid = this.validateFormat(type, value, pattern);
+          result = this.validateFormat(type, value, pattern);
           break;
         case "number":
-          isValid = this.validateNumber(value, pattern, min, max);
+          result = this.validateNumber(value, pattern, min, max);
           break;
         case "text":
-          isValid = this.validateText(value, pattern, min, max);
+          result = this.validateText(value, pattern, min, max);
           break;
         case "select":
-          isValid = value !== "";
+          result = {
+            isValid: value !== "",
+            errorMessage: value !== "" ? "" : this.messages.required,
+          };
           break;
       }
     }
 
-    if (isValid && field.dataset.confirm) {
-      isValid = this.validateConfirm(field.dataset.confirm, value);
+    if (result.isValid && field.dataset.confirm) {
+      result = this.validateConfirm(field.dataset.confirm, value);
     }
 
     const fieldGroup = this.getFieldGroup(field, type);
-    this.toggleError(fieldGroup, isValid);
+    this.toggleError(fieldGroup, result);
 
-    return isValid;
+    return result;
   }
 
   validateNumber(value, pattern, min, max) {
     const regexp = pattern ? new RegExp(pattern) : this.pattern.number;
 
-    if (!regexp.test(value)) return false;
+    if (!regexp.test(value)) {
+      return {
+        isValid: false,
+        errorMessage: this.messages.number,
+      };
+    }
 
     const num = parseFloat(value);
 
-    if (min !== null && num < min) return false;
-    if (max !== null && num > max) return false;
+    if (min !== null && num < min) {
+      return {
+        isValid: false,
+        errorMessage: this.messages.min(min),
+      };
+    }
 
-    return true;
+    if (max !== null && num > max) {
+      return {
+        isValid: false,
+        errorMessage: this.messages.max(max),
+      };
+    }
+
+    return {
+      isValid: true,
+      errorMessage: "",
+    };
   }
 
   validateText(value, pattern, min, max) {
     const regexp = pattern ? new RegExp(pattern) : null;
 
     if (regexp && !regexp.test(value)) {
-      return false;
+      return {
+        isValid: false,
+        errorMessage: this.messages.pattern,
+      };
     }
 
     if (min !== null && value.length < min) {
-      return false;
+      return {
+        isValid: false,
+        errorMessage: this.messages.min(min),
+      };
     }
 
     if (max !== null && value.length > max) {
-      return false;
+      return {
+        isValid: false,
+        errorMessage: this.messages.max(max),
+      };
     }
 
-    return true;
+    return {
+      isValid: true,
+      errorMessage: "",
+    };
   }
 
   validateFormat(type, value, pattern) {
     const regexp = pattern ? new RegExp(pattern) : this.pattern[type];
-    return regexp.test(value);
+    const result = regexp.test(value);
+
+    if (!result) {
+      return {
+        isValid: false,
+        errorMessage: this.messages[type] || this.messages.pattern,
+      };
+    }
+
+    return {
+      isValid: true,
+      errorMessage: "",
+    };
   }
 
   validateConfirmFields(id) {
@@ -194,9 +238,21 @@ export default class FormValidation {
   validateConfirm(selector, value) {
     const confirmField = this.form.querySelector(selector);
 
-    if (!confirmField) return false;
+    if (!confirmField) return;
 
-    return confirmField.value.trim() === value;
+    const result = confirmField.value.trim() === value;
+
+    if (!result) {
+      return {
+        isValid: false,
+        errorMessage: this.messages.confirm,
+      };
+    }
+
+    return {
+      isValid: true,
+      errorMessage: "",
+    };
   }
 
   getFieldGroup(field, type) {
@@ -257,8 +313,9 @@ export default class FormValidation {
     }
   }
 
-  toggleError(fields, isValid) {
+  toggleError(fields, result) {
     let formGroup = fields[0].closest(this.parentSelector);
+    const { isValid, errorMessage } = result;
 
     if (!formGroup) {
       console.error(
@@ -268,7 +325,33 @@ export default class FormValidation {
       return;
     }
 
+    if (this.addErrors) {
+      if (!isValid) {
+        this.addError(formGroup, errorMessage);
+      } else {
+        this.removeError(formGroup);
+      }
+    }
+
     formGroup.classList.toggle(this.errorClass, !isValid);
+  }
+
+  removeError(holder) {
+    const errorBlock = holder.querySelector(`.${this.errorMessageClass}`);
+    if (!errorBlock) return;
+    errorBlock.remove();
+  }
+
+  addError(holder, message) {
+    let errorBlock = holder.querySelector(`.${this.errorMessageClass}`);
+    if (errorBlock) {
+      errorBlock.textContent = message;
+    } else {
+      errorBlock = document.createElement("span");
+      errorBlock.classList.add(this.errorMessageClass);
+      errorBlock.textContent = message;
+      holder.append(errorBlock);
+    }
   }
 
   destroy() {
@@ -285,9 +368,15 @@ export default class FormValidation {
       .querySelectorAll(`.${this.errorClass}`)
       .forEach((el) => el.classList.remove(this.errorClass));
 
+    const errorMessages = this.form.querySelectorAll(
+      `.${this.errorMessageClass}`,
+    );
+    if (errorMessages) {
+      errorMessages.forEach((el) => el.remove());
+    }
+
     this.form.removeAttribute("novalidate");
 
     this.fields = [];
-    this.isValidForm = false;
   }
 }
