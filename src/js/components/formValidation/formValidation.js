@@ -238,7 +238,12 @@ export default class FormValidation {
   validateConfirm(selector, value) {
     const confirmField = this.form.querySelector(selector);
 
-    if (!confirmField) return;
+    if (!confirmField) {
+      return {
+        isValid: true,
+        errorMessage: "",
+      };
+    }
 
     const result = confirmField.value.trim() === value;
 
@@ -262,7 +267,7 @@ export default class FormValidation {
       const selector =
         type === "radio"
           ? `input[type="radio"][name="${field.name}"]`
-          : "input[type='checkbox']";
+          : `input[type="checkbox"][name="${field.name}"]`;
 
       return [...parent.querySelectorAll(selector)];
     }
@@ -327,30 +332,50 @@ export default class FormValidation {
 
     if (this.addErrors) {
       if (!isValid) {
-        this.addError(formGroup, errorMessage);
+        this.addError(formGroup, fields, errorMessage);
       } else {
-        this.removeError(formGroup);
+        this.removeError(formGroup, fields);
       }
     }
 
     formGroup.classList.toggle(this.errorClass, !isValid);
   }
 
-  removeError(holder) {
+  removeError(holder, fields) {
     const errorBlock = holder.querySelector(`.${this.errorMessageClass}`);
     if (!errorBlock) return;
+
+    fields.forEach((field) => {
+      field.removeAttribute("aria-invalid");
+      field.removeAttribute("aria-describedby");
+    });
     errorBlock.remove();
   }
 
-  addError(holder, message) {
+  addError(holder, fields, message) {
     let errorBlock = holder.querySelector(`.${this.errorMessageClass}`);
+
     if (errorBlock) {
       errorBlock.textContent = message;
     } else {
       errorBlock = document.createElement("span");
       errorBlock.classList.add(this.errorMessageClass);
       errorBlock.textContent = message;
+
+      if (fields.length > 1) {
+        errorBlock.id = `${fields[0].name}-error`;
+      } else {
+        errorBlock.id = `${fields[0].id}-error`;
+      }
+
+      errorBlock.setAttribute("role", "polite");
+
       holder.append(errorBlock);
+
+      fields.forEach((field) => {
+        field.setAttribute("aria-invalid", "true");
+        field.setAttribute("aria-describedby", errorBlock.id);
+      });
     }
   }
 
@@ -363,6 +388,11 @@ export default class FormValidation {
     if (this.addClassToForm) {
       this.form.classList.remove(this.addClassToForm);
     }
+
+    this.fields.forEach((field) => {
+      field.removeAttribute("aria-invalid");
+      field.removeAttribute("aria-describedby");
+    });
 
     this.form
       .querySelectorAll(`.${this.errorClass}`)
