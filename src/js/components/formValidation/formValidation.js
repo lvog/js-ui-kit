@@ -6,7 +6,7 @@ export default class FormValidation {
     this.parentSelector = options.errorParentSelector || ".form-group";
     this.skipFields = options.skipFields || null;
     this.addClassToForm = options.addClassToForm || null;
-    this.addErrorMessage = options.addErrorMessage ?? false;
+    this.addErrorMessage = options.addErrorMessage ?? true;
     this.errorMessageClass = options.errorMessageClass || "error-message";
 
     this.sendUrl = options.sendUrl || null;
@@ -34,7 +34,14 @@ export default class FormValidation {
       pattern: "Please enter a valid value.",
     };
 
-    this.requiredField = "[data-required='true']";
+    this.validationAttributes = [
+      "required",
+      "type",
+      "pattern",
+      "min",
+      "max",
+      "confirm",
+    ];
 
     this.form = document.querySelector(this.formSelector);
     this.fields = [];
@@ -55,13 +62,15 @@ export default class FormValidation {
   }
 
   findElements() {
-    this.fields = [...this.form.querySelectorAll(this.requiredField)];
+    this.fields = [...this.form.elements].filter((field) => {
+      if (this.skipFields && field.matches(this.skipFields)) {
+        return false;
+      }
 
-    if (this.skipFields) {
-      this.fields = this.fields.filter(
-        (field) => !field.matches(this.skipFields),
+      return this.validationAttributes.some(
+        (attr) => field.dataset[attr] !== undefined,
       );
-    }
+    });
   }
 
   bindEvents() {
@@ -166,17 +175,21 @@ export default class FormValidation {
       ? Number(field.dataset.max)
       : null;
 
+    const isRequired = field.dataset.required === "true";
+
     let result = {
       isValid: true,
       errorMessage: "",
     };
 
     if (!value || !value.length) {
-      result.isValid = false;
-      result.errorMessage = this.messages.required;
+      if (isRequired) {
+        result.isValid = false;
+        result.errorMessage = this.messages.required;
+      }
     }
 
-    if (result.isValid) {
+    if (result.isValid && value.length) {
       switch (type) {
         case "email":
         case "tel":
@@ -198,7 +211,7 @@ export default class FormValidation {
       }
     }
 
-    if (result.isValid && field.dataset.confirm) {
+    if (result.isValid && value.length && field.dataset.confirm) {
       result = this.validateConfirm(field.dataset.confirm, value);
     }
 
