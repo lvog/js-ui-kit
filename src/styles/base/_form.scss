@@ -45,6 +45,10 @@ select {
   .input-error & {
     border-color: var(--input-error-border-color);
   }
+
+  .input-success & {
+    border-color: var(--input-success-border-color);
+  }
 }
 
 input[type="text"],

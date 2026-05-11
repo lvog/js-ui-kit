@@ -1,11 +1,25 @@
 export default class FormValidation {
   constructor(options = {}) {
     this.formSelector = options.formSelector || ".form";
+    this.successClass = options.successClass || "input-success";
     this.errorClass = options.errorClass || "input-error";
     this.parentSelector = options.errorParentSelector || ".form-group";
     this.addClassToForm = options.addClassToForm || null;
-    this.addErrors = options.addErrors ?? true;
+    this.addErrorMessage = options.addErrorMessage ?? true;
     this.errorMessageClass = options.errorMessageClass || "error-message";
+
+    this.sendUrl = options.sendUrl || null;
+    this.sendOptions = {
+      method: "POST",
+      ...options.sendOptions,
+
+      headers: {
+        "Content-Type": "application/json",
+        ...options.sendOptions?.headers,
+      },
+    };
+    this.onSuccess = options.onSuccess || null;
+    this.onError = options.onError || null;
 
     this.pattern = {
       email: /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/,
@@ -67,25 +81,20 @@ export default class FormValidation {
       this.checkErrors();
     };
 
-    this.handleSubmit = (e) => {
+    this.handleSubmit = async (e) => {
       e.preventDefault();
 
-      let flag = true;
-
-      this.fields.forEach((field) => {
-        const result = this.validateField(field);
-        if (!result.isValid) flag = false;
-      });
-
-      if (this.addClassToForm) {
-        this.form.classList.toggle(this.addClassToForm, !flag);
-      }
+      let flag = this.validateForm();
 
       if (flag) {
         const data = this.getFormData();
+        let response = null;
 
-        console.log(data);
-        this.form.reset();
+        if (this.sendUrl) {
+          response = await this.sendForm(data);
+        }
+
+        await this.onSuccess?.(data, response, this.form);
       }
     };
 
@@ -93,6 +102,21 @@ export default class FormValidation {
     this.form.addEventListener("input", this.handleInput);
     this.form.addEventListener("change", this.handleInput);
     this.form.addEventListener("blur", this.handleInput, true);
+  }
+
+  validateForm() {
+    let flag = true;
+
+    this.fields.forEach((field) => {
+      const result = this.validateField(field);
+      if (!result.isValid) flag = false;
+    });
+
+    if (this.addClassToForm) {
+      this.form.classList.toggle(this.addClassToForm, !flag);
+    }
+
+    return flag;
   }
 
   validateField(field) {
@@ -144,7 +168,7 @@ export default class FormValidation {
     }
 
     const fieldGroup = this.getFieldGroup(field, type);
-    this.toggleError(fieldGroup, result);
+    this.toggleClass(fieldGroup, result);
 
     return result;
   }
@@ -338,7 +362,28 @@ export default class FormValidation {
     return data;
   }
 
-  toggleError(fields, result) {
+  async sendForm(data) {
+    try {
+      const response = await fetch(this.sendUrl, {
+        ...this.sendOptions,
+        body: JSON.stringify(data),
+      });
+
+      if (!response.ok) {
+        throw new Error(`Request failed: ${response.status}`);
+      }
+
+      return response;
+    } catch (error) {
+      console.error("Form submit error:", error);
+
+      this.onError?.(error);
+
+      return null;
+    }
+  }
+
+  toggleClass(fields, result) {
     let formGroup = fields[0].closest(this.parentSelector);
     const { isValid, errorMessage } = result;
 
@@ -350,7 +395,7 @@ export default class FormValidation {
       return;
     }
 
-    if (this.addErrors) {
+    if (this.addErrorMessage) {
       if (!isValid) {
         this.addError(formGroup, fields, errorMessage);
       } else {
@@ -359,6 +404,10 @@ export default class FormValidation {
     }
 
     formGroup.classList.toggle(this.errorClass, !isValid);
+
+    if (this.successClass) {
+      formGroup.classList.toggle(this.successClass, isValid);
+    }
   }
 
   removeError(holder, fields) {
@@ -388,7 +437,7 @@ export default class FormValidation {
         errorBlock.id = `${fields[0].id}-error`;
       }
 
-      errorBlock.setAttribute("role", "polite");
+      errorBlock.setAttribute("aria-live", "polite");
 
       holder.append(errorBlock);
 

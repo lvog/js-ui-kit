@@ -11,6 +11,7 @@ $breakpoint-widescreen: 1200px;
   --color-orange: #ff8904;
   --color-dark-orange: #e05504;
   --color-red: #d60606;
+  --color-green: #12b76a;
   --color-blue: #0d6efd;
 
   --base-font-family: "Montserrat", sans-serif;
@@ -59,6 +60,7 @@ $breakpoint-widescreen: 1200px;
 
   --input-error-color: var(--color-red);
   --input-error-border-color: var(--color-red);
+  --input-success-border-color: var(--color-green);
 
   --base-transition-duration: 0.3s;
   --base-transition-timing-function: ease-in-out;
