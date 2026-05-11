@@ -1,23 +1,14 @@
 export default class FormValidation {
   constructor(options = {}) {
     this.formSelector = options.formSelector || ".form";
-    this.successClass = options.successClass || "input-success";
+    this.successClass = options.successClass || null;
     this.errorClass = options.errorClass || "input-error";
     this.parentSelector = options.errorParentSelector || ".form-group";
     this.addClassToForm = options.addClassToForm || null;
-    this.addErrorMessage = options.addErrorMessage ?? true;
+    this.addErrorMessage = options.addErrorMessage ?? false;
     this.errorMessageClass = options.errorMessageClass || "error-message";
 
     this.sendUrl = options.sendUrl || null;
-    this.sendOptions = {
-      method: "POST",
-      ...options.sendOptions,
-
-      headers: {
-        "Content-Type": "application/json",
-        ...options.sendOptions?.headers,
-      },
-    };
     this.onSuccess = options.onSuccess || null;
     this.onError = options.onError || null;
 
@@ -119,14 +110,13 @@ export default class FormValidation {
       const flag = this.validateForm();
 
       if (flag) {
-        const data = this.getFormData();
         let response = null;
 
         if (this.sendUrl) {
-          response = await this.sendForm(data);
+          response = await this.sendForm();
         }
 
-        await this.onSuccess?.(data, response, this.form);
+        await this.onSuccess?.(response, this.form);
       }
     };
 
@@ -413,11 +403,34 @@ export default class FormValidation {
     return data;
   }
 
-  async sendForm(data) {
+  buildRequest() {
+    const hasFiles = [...this.form.querySelectorAll('input[type="file"]')].some(
+      (input) => input.files.length,
+    );
+
+    if (hasFiles) {
+      return {
+        body: new FormData(this.form),
+        headers: {},
+      };
+    }
+
+    return {
+      body: JSON.stringify(this.getFormData()),
+      headers: {
+        "Content-Type": "application/json",
+      },
+    };
+  }
+
+  async sendForm() {
+    const { body, headers } = this.buildRequest();
+
     try {
       const response = await fetch(this.sendUrl, {
-        ...this.sendOptions,
-        body: JSON.stringify(data),
+        method: "POST",
+        headers,
+        body,
       });
 
       if (!response.ok) {
@@ -501,8 +514,14 @@ export default class FormValidation {
 
   resetFieldStates() {
     this.form
-      .querySelectorAll(`.${this.errorClass}, .${this.successClass}`)
-      .forEach((el) => el.classList.remove(this.errorClass, this.successClass));
+      .querySelectorAll(`.${this.errorClass}`)
+      .forEach((el) => el.classList.remove(this.errorClass));
+
+    if (this.successClass) {
+      this.form
+        .querySelectorAll(`.${this.successClass}`)
+        .forEach((el) => el.classList.remove(this.successClass));
+    }
   }
 
   destroy() {
@@ -512,7 +531,6 @@ export default class FormValidation {
     this.form.removeEventListener("blur", this.handleBlur, true);
 
     this.touchedFields.clear();
-    this.touchedFields = null;
 
     if (this.addClassToForm) {
       this.form.classList.remove(this.addClassToForm);
@@ -525,12 +543,9 @@ export default class FormValidation {
 
     this.resetFieldStates();
 
-    const errorMessages = this.form.querySelectorAll(
-      `.${this.errorMessageClass}`,
-    );
-    if (errorMessages) {
-      errorMessages.forEach((el) => el.remove());
-    }
+    this.form
+      .querySelectorAll(`.${this.errorMessageClass}`)
+      .forEach((el) => el.remove());
 
     this.form.removeAttribute("novalidate");
 
