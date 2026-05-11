@@ -4,6 +4,7 @@ export default class FormValidation {
     this.successClass = options.successClass || null;
     this.errorClass = options.errorClass || "input-error";
     this.parentSelector = options.errorParentSelector || ".form-group";
+    this.skipFields = options.skipFields || null;
     this.addClassToForm = options.addClassToForm || null;
     this.addErrorMessage = options.addErrorMessage ?? false;
     this.errorMessageClass = options.errorMessageClass || "error-message";
@@ -55,6 +56,12 @@ export default class FormValidation {
 
   findElements() {
     this.fields = [...this.form.querySelectorAll(this.requiredField)];
+
+    if (this.skipFields) {
+      this.fields = this.fields.filter(
+        (field) => !field.matches(this.skipFields),
+      );
+    }
   }
 
   bindEvents() {
