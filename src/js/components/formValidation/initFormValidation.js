@@ -5,6 +5,7 @@ export function initFormValidation() {
     formSelector: ".form-validation",
     addClassToForm: "form-error",
     onSuccess(data, response, form) {
+      formValidation.resetFieldStates();
       form.reset();
     },
   });

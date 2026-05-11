@@ -46,6 +46,7 @@ export default class FormValidation {
 
     this.form = document.querySelector(this.formSelector);
     this.fields = [];
+    this.touchedFields = new Set();
   }
 
   init() {
@@ -66,25 +67,56 @@ export default class FormValidation {
   }
 
   bindEvents() {
+    this.handleBlur = (e) => {
+      const data = this.getEventField(e);
+
+      if (!data) return;
+
+      const { field, type } = data;
+
+      if (type === "radio" || type === "checkbox") return;
+
+      this.touchedFields.add(field);
+
+      this.validate(field);
+    };
+
     this.handleInput = (e) => {
-      const field = e.target;
-      if (!this.fields.includes(field)) return;
+      const data = this.getEventField(e);
 
-      const type = this.getType(field);
+      if (!data) return;
 
-      if ((type === "radio" || type === "checkbox") && e.type === "blur") {
-        return;
+      const { field, type } = data;
+
+      if (type === "radio" || type === "checkbox") return;
+
+      if (!this.touchedFields.has(field)) return;
+
+      this.validate(field);
+    };
+
+    this.handleChange = (e) => {
+      const data = this.getEventField(e);
+
+      if (!data) return;
+
+      const { field, type } = data;
+
+      if (type === "radio" || type === "checkbox") {
+        this.touchedFields.add(field);
       }
 
-      this.validateField(field);
-      this.validateConfirmFields(field.id);
-      this.checkErrors();
+      if (!this.touchedFields.has(field)) return;
+
+      this.validate(field);
     };
 
     this.handleSubmit = async (e) => {
       e.preventDefault();
 
-      let flag = this.validateForm();
+      this.fields.forEach((field) => this.touchedFields.add(field));
+
+      const flag = this.validateForm();
 
       if (flag) {
         const data = this.getFormData();
@@ -98,10 +130,16 @@ export default class FormValidation {
       }
     };
 
-    this.form.addEventListener("submit", this.handleSubmit);
+    this.form.addEventListener("blur", this.handleBlur, true);
     this.form.addEventListener("input", this.handleInput);
-    this.form.addEventListener("change", this.handleInput);
-    this.form.addEventListener("blur", this.handleInput, true);
+    this.form.addEventListener("change", this.handleChange);
+    this.form.addEventListener("submit", this.handleSubmit);
+  }
+
+  validate(field) {
+    this.validateField(field);
+    this.validateConfirmFields(field.id);
+    this.checkErrors();
   }
 
   validateForm() {
@@ -335,6 +373,19 @@ export default class FormValidation {
     return [...inputs].filter((el) => el.checked).map((el) => el.value);
   }
 
+  getEventField(e) {
+    const field = e.target;
+
+    if (!this.fields.includes(field)) return null;
+
+    const type = this.getType(field);
+
+    return {
+      field,
+      type,
+    };
+  }
+
   checkErrors() {
     if (!this.addClassToForm) return;
 
@@ -448,11 +499,20 @@ export default class FormValidation {
     }
   }
 
+  resetFieldStates() {
+    this.form
+      .querySelectorAll(`.${this.errorClass}, .${this.successClass}`)
+      .forEach((el) => el.classList.remove(this.errorClass, this.successClass));
+  }
+
   destroy() {
     this.form.removeEventListener("submit", this.handleSubmit);
     this.form.removeEventListener("input", this.handleInput);
-    this.form.removeEventListener("change", this.handleInput);
-    this.form.removeEventListener("blur", this.handleInput, true);
+    this.form.removeEventListener("change", this.handleChange);
+    this.form.removeEventListener("blur", this.handleBlur, true);
+
+    this.touchedFields.clear();
+    this.touchedFields = null;
 
     if (this.addClassToForm) {
       this.form.classList.remove(this.addClassToForm);
@@ -463,9 +523,7 @@ export default class FormValidation {
       field.removeAttribute("aria-describedby");
     });
 
-    this.form
-      .querySelectorAll(`.${this.errorClass}`)
-      .forEach((el) => el.classList.remove(this.errorClass));
+    this.resetFieldStates();
 
     const errorMessages = this.form.querySelectorAll(
       `.${this.errorMessageClass}`,
