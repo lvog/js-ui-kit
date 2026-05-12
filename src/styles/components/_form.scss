@@ -1,17 +1,17 @@
 @use "abstracts/variables" as v;
 @use "abstracts/mixins" as m;
 
-.form-validation {
+.form {
   max-width: 600px;
   margin: 0 auto;
-}
 
-.form-group {
-  margin-bottom: var(--base-margin-bottom);
+  &-group {
+    margin-bottom: var(--base-margin-bottom);
 
-  &.input-error {
-    .error-message {
-      display: block;
+    &.input-error {
+      .error-message {
+        display: block;
+      }
     }
   }
 }
@@ -220,6 +220,5 @@ input[type="submit"] {
 }
 
 .error-message {
-  display: none;
   color: var(--input-error-color);
 }

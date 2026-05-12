@@ -8,7 +8,6 @@
 // 3. Base styles
 @use "base/fonts";
 @use "base/base";
-@use "base/form";
 
 // 4. Layout sections
 @use "layout/header";
@@ -16,6 +15,7 @@
 @use "layout/footer";
 
 // 5. Components
+@use "components/form";
 @use "components/button";
 @use "components/slider";
 @use "components/accordion";
