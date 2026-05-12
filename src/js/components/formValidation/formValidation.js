@@ -47,8 +47,10 @@ export default class FormValidation {
       password:
         "Password must be at least 8 characters long and include at least one uppercase letter, one lowercase letter, one number, and one special character",
       number: "Please enter a valid number.",
-      min: (min) => `Must be at least ${min} characters.`,
-      max: (max) => `Must be no more than ${max} characters.`,
+      textMin: (min) => `Must be at least ${min} characters.`,
+      textMax: (max) => `Must be no more than ${max} characters.`,
+      numberMin: (min) => `Must be at least ${min}.`,
+      numberMax: (max) => `Must be no more than ${max}.`,
       confirm: "Passwords don't match.",
       pattern: "Please enter a valid value.",
       ...options.messages,
@@ -261,11 +263,11 @@ export default class FormValidation {
     const num = parseFloat(value);
 
     if (min !== null && num < min) {
-      return this.createResult(false, this.messages.min(min));
+      return this.createResult(false, this.messages.numberMin(min));
     }
 
     if (max !== null && num > max) {
-      return this.createResult(false, this.messages.max(max));
+      return this.createResult(false, this.messages.numberMax(max));
     }
 
     return this.createResult(true);
@@ -279,11 +281,11 @@ export default class FormValidation {
     }
 
     if (min !== null && value.length < min) {
-      return this.createResult(false, this.messages.min(min));
+      return this.createResult(false, this.messages.textMin(min));
     }
 
     if (max !== null && value.length > max) {
-      return this.createResult(false, this.messages.max(max));
+      return this.createResult(false, this.messages.textMax(max));
     }
 
     return this.createResult(true);

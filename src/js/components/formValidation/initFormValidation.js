@@ -7,6 +7,8 @@ export function initFormValidation() {
     skipFields: ".skip-field",
     messages: {
       email: "Enter a valid email address",
+      numberMin: (min) => `Age must be at least ${min}`,
+      numberMax: (max) => `Age must not be greater than ${max}`,
     },
     onSuccess(response, form) {
       formValidation.resetFieldStates();

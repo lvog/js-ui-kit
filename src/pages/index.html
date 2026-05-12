@@ -224,6 +224,7 @@
           <div class="container">
             <h2>Form validation</h2>
             <form class="form-validation" action="#">
+              <!-- text: data-required + data-min + data-pattern -->
               <div class="form-group">
                 <label for="name">Name *</label>
                 <input
@@ -238,6 +239,7 @@
                   data-required="true"
                 />
               </div>
+              <!-- tel: data-required + validated with internal tel pattern -->
               <div class="form-group">
                 <label for="phone">Phone *</label>
                 <input
@@ -247,8 +249,10 @@
                   placeholder="+38 (0XX) XXX XX XX"
                   autocomplete="tel"
                   data-type="tel"
+                  data-required="true"
                 />
               </div>
+              <!-- email: data-required + validated with internal email pattern -->
               <div class="form-group">
                 <label for="email">Email *</label>
                 <input
@@ -261,150 +265,185 @@
                   data-required="true"
                 />
               </div>
+              <!-- number: data-required + data-min + data-max + validated with internal number pattern -->
               <div class="form-group">
-                <label for="number">Number *</label>
+                <label for="age">Age *</label>
                 <input
-                  class="skip-field"
-                  id="number"
+                  id="age"
                   type="text"
-                  name="number"
-                  placeholder="Number"
+                  name="age"
+                  placeholder="18–99"
                   autocomplete="off"
+                  inputmode="numeric"
                   data-type="number"
+                  data-min="18"
+                  data-max="99"
                   data-required="true"
                 />
               </div>
+              <!-- text: optional validation + data-min + data-max -->
               <div class="form-group">
                 <label for="message">Message</label>
                 <textarea
                   id="message"
                   name="message"
-                  placeholder="Message"
+                  placeholder="Your message (10–500 characters)"
                   autocomplete="off"
+                  data-type="text"
+                  data-min="10"
+                  data-max="500"
                 ></textarea>
               </div>
+              <!-- select: data-required -->
               <div class="form-group">
-                <label for="file">File *</label>
-                <input
-                  id="file"
-                  type="file"
-                  name="file"
-                  placeholder="File"
-                  autocomplete="off"
-                />
-              </div>
-              <div class="form-group">
-                <label for="date">Choose date:</label>
-                <input type="date" id="date" name="date" data-required="true" />
-              </div>
-              <div class="form-group">
-                <span class="label">Choose*</span>
-                <div class="form-control">
-                  <label class="custom-checkbox">
-                    <input
-                      type="checkbox"
-                      name="app"
-                      value="New"
-                      data-required="true"
-                    /><span class="checkmark"></span>First option</label
-                  >
-                </div>
-                <div class="form-control">
-                  <label class="custom-checkbox">
-                    <input
-                      type="checkbox"
-                      name="app"
-                      value="Old"
-                      data-required="true"
-                    /><span class="checkmark"></span>Second option</label
-                  >
-                </div>
-              </div>
-              <div class="form-group">
-                <label for="select">Select *</label>
+                <label for="select">Subject *</label>
                 <div class="custom-select">
                   <select id="select" name="select" data-required="true">
-                    <option value="">Select an option</option>
-                    <option value="option1">Option 1</option>
-                    <option value="option2">Option 2</option>
-                    <option value="option3">Option 3</option>
+                    <option value="">Select a subject</option>
+                    <option value="general">General inquiry</option>
+                    <option value="support">Support</option>
+                    <option value="partnership">Partnership</option>
                   </select>
                 </div>
               </div>
+              <!-- checkbox: data-required -> at least one -->
               <div class="form-group">
-                <span class="label">Choose one *</span>
+                <span class="label">Interests * (choose at least one)</span>
                 <div class="form-control">
-                  <label class="custom-radio">
+                  <label class="custom-checkbox">
                     <input
-                      type="radio"
-                      name="radio"
-                      value="option1"
+                      type="checkbox"
+                      name="interests"
+                      value="design"
                       data-required="true"
-                    /><span class="checkmark"></span>Option 1</label
-                  >
+                    /><span class="checkmark"></span>Design
+                  </label>
                 </div>
                 <div class="form-control">
-                  <label class="custom-radio">
+                  <label class="custom-checkbox">
                     <input
-                      type="radio"
-                      name="radio"
-                      value="option2"
+                      type="checkbox"
+                      name="interests"
+                      value="development"
                       data-required="true"
-                    /><span class="checkmark"></span>Option 2</label
-                  >
+                    /><span class="checkmark"></span>Development
+                  </label>
                 </div>
                 <div class="form-control">
-                  <label class="custom-radio">
+                  <label class="custom-checkbox">
                     <input
-                      type="radio"
-                      name="radio"
-                      value="option3"
+                      type="checkbox"
+                      name="interests"
+                      value="marketing"
                       data-required="true"
-                    /><span class="checkmark"></span>Option 3</label
-                  >
+                    /><span class="checkmark"></span>Marketing
+                  </label>
                 </div>
               </div>
+              <!-- radio: data-required -> choose one -->
               <div class="form-group">
-                <label for="password">Password</label>
+                <span class="label">Contact preference *</span>
+                <div class="form-control">
+                  <label class="custom-radio">
+                    <input
+                      type="radio"
+                      name="contact"
+                      value="email"
+                      data-required="true"
+                    /><span class="checkmark"></span>Email
+                  </label>
+                </div>
+                <div class="form-control">
+                  <label class="custom-radio">
+                    <input
+                      type="radio"
+                      name="contact"
+                      value="phone"
+                      data-required="true"
+                    /><span class="checkmark"></span>Phone
+                  </label>
+                </div>
+                <div class="form-control">
+                  <label class="custom-radio">
+                    <input
+                      type="radio"
+                      name="contact"
+                      value="telegram"
+                      data-required="true"
+                    /><span class="checkmark"></span>Telegram
+                  </label>
+                </div>
+                <div class="form-control">
+                  <label class="custom-radio">
+                    <input
+                      type="radio"
+                      name="contact"
+                      value="linkedin"
+                      data-required="true"
+                    /><span class="checkmark"></span>LinkedIn
+                  </label>
+                </div>
+              </div>
+              <!-- password: data-required + validated with internal password pattern -->
+              <div class="form-group">
+                <label for="password">Password *</label>
                 <input
                   id="password"
                   type="password"
                   name="password"
-                  placeholder="Password"
+                  placeholder="Min 8 chars, upper, lower, digit, symbol"
+                  autocomplete="off"
                   data-type="password"
                   data-required="true"
                 />
               </div>
+              <!-- confirm: validated with data-confirm selector -->
               <div class="form-group">
-                <label for="password2">Password2</label>
+                <label for="confirm-password">Confirm password *</label>
                 <input
-                  id="password2"
+                  id="confirm-password"
                   type="password"
-                  name="password2"
-                  placeholder="Password2"
+                  name="confirm-password"
+                  placeholder="Repeat password"
+                  autocomplete="off"
+                  data-type="text"
+                  data-confirm="#password"
+                  data-required="true"
+                />
+              </div>
+              <!-- skipFields: class="skip-field" + data-required -> validation attributes are ignored -->
+              <div class="form-group">
+                <label for="promo">Promo code</label>
+                <input
+                  class="skip-field"
+                  id="promo"
+                  type="text"
+                  name="promo"
+                  placeholder="Optional"
+                  autocomplete="off"
                   data-type="text"
                   data-required="true"
                 />
               </div>
+              <!-- file: data-required -->
               <div class="form-group">
-                <label for="confirm-password2">Confirm password2</label>
+                <label for="file">File *</label>
                 <input
-                  id="confirm-password2"
-                  type="password"
-                  name="confirm password2"
-                  placeholder="Confirm Password2"
-                  data-type="text"
-                  data-confirm="#password2"
+                  class="custom-file"
+                  id="file"
+                  type="file"
+                  name="file"
                   data-required="true"
                 />
               </div>
+              <!-- single checkbox: data-required -->
               <div class="form-group">
-                <label class="custom-checkbox" for="checkbox">
+                <label class="custom-checkbox" for="terms">
                   <input
-                    id="checkbox"
+                    id="terms"
                     type="checkbox"
-                    name="checkbox"
-                    value="I agree to the terms and conditions"
+                    name="terms"
+                    value="agreed"
                     data-required="true"
                   />
                   <span class="checkmark"></span>

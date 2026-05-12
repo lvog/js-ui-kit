@@ -1,6 +1,11 @@
 @use "abstracts/variables" as v;
 @use "abstracts/mixins" as m;
 
+.form-validation {
+  max-width: 600px;
+  margin: 0 auto;
+}
+
 .form-group {
   margin-bottom: var(--base-margin-bottom);
 
@@ -25,6 +30,7 @@ input[type="number"],
 input[type="tel"],
 input[type="email"],
 input[type="search"],
+input[type="date"],
 input[type="password"],
 textarea,
 select {
@@ -112,7 +118,7 @@ textarea {
   }
 
   .input-error & {
-    color: var(--color-red);
+    color: var(--input-error-color);
   }
 
   .checkmark {
@@ -124,7 +130,7 @@ textarea {
     position: relative;
 
     .input-error & {
-      border-color: var(--color-red);
+      border-color: var(--input-error-border-color);
     }
 
     &::before {
@@ -180,6 +186,27 @@ input[type="checkbox"]:checked ~ .checkmark::before {
   }
 }
 
+.custom-file {
+  @include m.transition(color);
+  .input-error & {
+    color: var(--input-error-color);
+  }
+
+  &::file-selector-button {
+    @include m.transition(background);
+    padding: 10px 20px;
+    color: var(--color-white);
+    background: var(--color-gray);
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+
+    @include m.hover {
+      background: var(--color-black);
+    }
+  }
+}
+
 button,
 input[type="button"],
 input[type="reset"],
@@ -194,5 +221,5 @@ input[type="submit"] {
 
 .error-message {
   display: none;
-  color: var(--color-red);
+  color: var(--input-error-color);
 }
