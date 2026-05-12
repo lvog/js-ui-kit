@@ -1,5 +1,23 @@
+/**
+ * FormValidation configuration options
+ * @typedef {Object} FormValidationOptions
+ * @property {string} [formSelector] - Root element selector
+ * @property {string|null} [successClass] - Class added to form group on valid field
+ * @property {string} [errorClass] - Class added to form group on invalid field
+ * @property {string} [errorParentSelector] - Parent element selector for error class and message
+ * @property {string|null} [skipFields] - Selector for fields to skip during validation
+ * @property {string|null} [addClassToForm] - Class added to form on submit if invalid
+ * @property {boolean} [addErrorMessage] - Enable/disable error messages
+ * @property {string} [errorMessageClass] - Class for error message element
+ * @property {string|null} [sendUrl] - URL to send form data
+ * @property {Function|null} [onSuccess] - Callback on successful form submission
+ * @property {Function|null} [onError] - Callback on failed form submission
+ * @property {Object} [messages] - Custom validation messages for localization
+ */
+
 export default class FormValidation {
   constructor(options = {}) {
+    // User options
     this.formSelector = options.formSelector || ".form";
     this.successClass = options.successClass || null;
     this.errorClass = options.errorClass || "input-error";
@@ -8,11 +26,12 @@ export default class FormValidation {
     this.addClassToForm = options.addClassToForm || null;
     this.addErrorMessage = options.addErrorMessage ?? true;
     this.errorMessageClass = options.errorMessageClass || "error-message";
-
     this.sendUrl = options.sendUrl || null;
     this.onSuccess = options.onSuccess || null;
     this.onError = options.onError || null;
 
+    // Validation
+    // Patterns and messages used in field validation
     this.pattern = {
       email: /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/,
       number: /^-?\d+(\.\d+)?$/,
@@ -32,6 +51,7 @@ export default class FormValidation {
       max: (max) => `Must be no more than ${max} characters.`,
       confirm: "Passwords don't match.",
       pattern: "Please enter a valid value.",
+      ...options.messages,
     };
 
     this.validationAttributes = [
@@ -43,10 +63,15 @@ export default class FormValidation {
       "confirm",
     ];
 
+    // DOM elements
     this.form = document.querySelector(this.formSelector);
     this.fields = [];
+
+    // State
     this.touchedFields = new Set();
   }
+
+  // Initialization
 
   init() {
     if (!this.form) {
@@ -61,6 +86,8 @@ export default class FormValidation {
     this.bindEvents();
   }
 
+  // Setup
+
   findElements() {
     this.fields = [...this.form.elements].filter((field) => {
       if (this.skipFields && field.matches(this.skipFields)) {
@@ -72,6 +99,9 @@ export default class FormValidation {
       );
     });
   }
+
+  // Events
+  // All event listeners (user interaction)
 
   bindEvents() {
     this.handleBlur = (e) => {
@@ -123,9 +153,9 @@ export default class FormValidation {
 
       this.fields.forEach((field) => this.touchedFields.add(field));
 
-      const flag = this.validateForm();
+      const isValid = this.validateForm();
 
-      if (flag) {
+      if (isValid) {
         let response = null;
 
         if (this.sendUrl) {
@@ -142,6 +172,9 @@ export default class FormValidation {
     this.form.addEventListener("submit", this.handleSubmit);
   }
 
+  // Core Logic
+  // Main validation behavior
+
   validate(field) {
     this.validateField(field);
     this.validateConfirmFields(field.id);
@@ -149,66 +182,29 @@ export default class FormValidation {
   }
 
   validateForm() {
-    let flag = true;
+    let isValid = true;
 
     this.fields.forEach((field) => {
       const result = this.validateField(field);
-      if (!result.isValid) flag = false;
+      if (!result.isValid) isValid = false;
     });
 
     if (this.addClassToForm) {
-      this.form.classList.toggle(this.addClassToForm, !flag);
+      this.form.classList.toggle(this.addClassToForm, !isValid);
     }
 
-    return flag;
+    return isValid;
   }
 
   validateField(field) {
     const type = this.getType(field);
     const value = this.getValue(field, type);
-    const pattern = field.dataset.pattern || null;
-    const min = field.hasAttribute("data-min")
-      ? Number(field.dataset.min)
-      : null;
+    const options = this.getValidationOptions(field);
 
-    const max = field.hasAttribute("data-max")
-      ? Number(field.dataset.max)
-      : null;
-
-    const isRequired = field.dataset.required === "true";
-
-    let result = {
-      isValid: true,
-      errorMessage: "",
-    };
-
-    if (!value || !value.length) {
-      if (isRequired) {
-        result.isValid = false;
-        result.errorMessage = this.messages.required;
-      }
-    }
+    let result = this.validateRequired(field, value);
 
     if (result.isValid && value.length) {
-      switch (type) {
-        case "email":
-        case "tel":
-        case "password":
-          result = this.validateFormat(type, value, pattern);
-          break;
-        case "number":
-          result = this.validateNumber(value, pattern, min, max);
-          break;
-        case "text":
-          result = this.validateText(value, pattern, min, max);
-          break;
-        case "select":
-          result = {
-            isValid: value !== "",
-            errorMessage: value !== "" ? "" : this.messages.required,
-          };
-          break;
-      }
+      result = this.validateByType(type, value, options);
     }
 
     if (result.isValid && value.length && field.dataset.confirm) {
@@ -216,71 +212,81 @@ export default class FormValidation {
     }
 
     const fieldGroup = this.getFieldGroup(field, type);
-    this.toggleClass(fieldGroup, result);
+    this.updateFieldState(fieldGroup, result);
 
     return result;
+  }
+
+  validateRequired(field, value) {
+    const isRequired = field.dataset.required === "true";
+
+    if (!value || !value.length) {
+      if (isRequired) {
+        return this.createResult(false, this.messages.required);
+      }
+    }
+
+    return this.createResult(true);
+  }
+
+  validateByType(type, value, options) {
+    const { pattern, min, max } = options;
+
+    switch (type) {
+      case "email":
+      case "tel":
+      case "password":
+        return this.validateFormat(type, value, pattern);
+      case "number":
+        return this.validateNumber(value, pattern, min, max);
+      case "text":
+        return this.validateText(value, pattern, min, max);
+      case "select":
+        return this.createResult(
+          value !== "",
+          value !== "" ? "" : this.messages.required,
+        );
+      default:
+        return this.createResult(true);
+    }
   }
 
   validateNumber(value, pattern, min, max) {
     const regexp = pattern ? new RegExp(pattern) : this.pattern.number;
 
     if (!regexp.test(value)) {
-      return {
-        isValid: false,
-        errorMessage: this.messages.number,
-      };
+      return this.createResult(false, this.messages.number);
     }
 
     const num = parseFloat(value);
 
     if (min !== null && num < min) {
-      return {
-        isValid: false,
-        errorMessage: this.messages.min(min),
-      };
+      return this.createResult(false, this.messages.min(min));
     }
 
     if (max !== null && num > max) {
-      return {
-        isValid: false,
-        errorMessage: this.messages.max(max),
-      };
+      return this.createResult(false, this.messages.max(max));
     }
 
-    return {
-      isValid: true,
-      errorMessage: "",
-    };
+    return this.createResult(true);
   }
 
   validateText(value, pattern, min, max) {
     const regexp = pattern ? new RegExp(pattern) : null;
 
     if (regexp && !regexp.test(value)) {
-      return {
-        isValid: false,
-        errorMessage: this.messages.pattern,
-      };
+      return this.createResult(false, this.messages.pattern);
     }
 
     if (min !== null && value.length < min) {
-      return {
-        isValid: false,
-        errorMessage: this.messages.min(min),
-      };
+      return this.createResult(false, this.messages.min(min));
     }
 
     if (max !== null && value.length > max) {
-      return {
-        isValid: false,
-        errorMessage: this.messages.max(max),
-      };
+      return this.createResult(false, this.messages.max(max));
     }
 
-    return {
-      isValid: true,
-      errorMessage: "",
-    };
+    return this.createResult(true);
   }
 
   validateFormat(type, value, pattern) {
@@ -288,16 +294,12 @@ export default class FormValidation {
     const result = regexp.test(value);
 
     if (!result) {
-      return {
-        isValid: false,
-        errorMessage: this.messages[type] || this.messages.pattern,
-      };
+      const errorMessage = this.messages[type] || this.messages.pattern;
+
+      return this.createResult(false, errorMessage);
     }
 
-    return {
-      isValid: true,
-      errorMessage: "",
-    };
+    return this.createResult(true);
   }
 
   validateConfirmFields(id) {
@@ -314,26 +316,20 @@ export default class FormValidation {
     const confirmField = this.form.querySelector(selector);
 
     if (!confirmField) {
-      return {
-        isValid: true,
-        errorMessage: "",
-      };
+      return this.createResult(true);
     }
 
     const result = confirmField.value.trim() === value;
 
     if (!result) {
-      return {
-        isValid: false,
-        errorMessage: this.messages.confirm,
-      };
+      return this.createResult(false, this.messages.confirm);
     }
 
-    return {
-      isValid: true,
-      errorMessage: "",
-    };
+    return this.createResult(true);
   }
+
+  // Helpers
+  // Data retrieval and validation helpers
 
   getFieldGroup(field, type) {
     const parent = field.closest(this.parentSelector);
@@ -370,6 +366,14 @@ export default class FormValidation {
     return value;
   }
 
+  getValidationOptions(field) {
+    return {
+      pattern: field.dataset.pattern || null,
+      min: field.hasAttribute("data-min") ? Number(field.dataset.min) : null,
+      max: field.hasAttribute("data-max") ? Number(field.dataset.max) : null,
+    };
+  }
+
   getCheckedValue(field, type) {
     const parent = field.closest(this.parentSelector);
     const selector =
@@ -396,16 +400,6 @@ export default class FormValidation {
     };
   }
 
-  checkErrors() {
-    if (!this.addClassToForm) return;
-
-    const errors = this.form.querySelectorAll(`.${this.errorClass}`);
-
-    if (!errors.length) {
-      this.form.classList.remove(this.addClassToForm);
-    }
-  }
-
   getFormData() {
     const formData = new FormData(this.form);
     const data = {};
@@ -422,6 +416,16 @@ export default class FormValidation {
 
     return data;
   }
+
+  createResult(isValid, errorMessage = "") {
+    return {
+      isValid,
+      errorMessage,
+    };
+  }
+
+  // Network
+  // Form data sending
 
   buildRequest() {
     const hasFiles = [...this.form.querySelectorAll('input[type="file"]')].some(
@@ -467,8 +471,11 @@ export default class FormValidation {
     }
   }
 
-  toggleClass(fields, result) {
-    let formGroup = fields[0].closest(this.parentSelector);
+  // UI State
+  // Updates visual state (classes and error messages)
+
+  updateFieldState(fields, result) {
+    const formGroup = fields[0].closest(this.parentSelector);
     const { isValid, errorMessage } = result;
 
     if (!formGroup) {
@@ -492,17 +499,6 @@ export default class FormValidation {
     if (this.successClass) {
       formGroup.classList.toggle(this.successClass, isValid);
     }
-  }
-
-  removeError(holder, fields) {
-    const errorBlock = holder.querySelector(`.${this.errorMessageClass}`);
-    if (!errorBlock) return;
-
-    fields.forEach((field) => {
-      field.removeAttribute("aria-invalid");
-      field.removeAttribute("aria-describedby");
-    });
-    errorBlock.remove();
   }
 
   addError(holder, fields, message) {
@@ -532,6 +528,27 @@ export default class FormValidation {
     }
   }
 
+  removeError(holder, fields) {
+    const errorBlock = holder.querySelector(`.${this.errorMessageClass}`);
+    if (!errorBlock) return;
+
+    fields.forEach((field) => {
+      field.removeAttribute("aria-invalid");
+      field.removeAttribute("aria-describedby");
+    });
+    errorBlock.remove();
+  }
+
+  checkErrors() {
+    if (!this.addClassToForm) return;
+
+    const errors = this.form.querySelectorAll(`.${this.errorClass}`);
+
+    if (!errors.length) {
+      this.form.classList.remove(this.addClassToForm);
+    }
+  }
+
   resetFieldStates() {
     this.form
       .querySelectorAll(`.${this.errorClass}`)
@@ -543,6 +560,9 @@ export default class FormValidation {
         .forEach((el) => el.classList.remove(this.successClass));
     }
   }
+
+  // Destroy
+  // Cleanup and reset
 
   destroy() {
     this.form.removeEventListener("submit", this.handleSubmit);
