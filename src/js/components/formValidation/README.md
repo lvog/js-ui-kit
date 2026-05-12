@@ -18,20 +18,20 @@ A lightweight, dependency-free JavaScript form validation component with support
 
 ## Options
 
-| Option              | Type               | Default         | Description                                                     |
-| ------------------- | ------------------ | --------------- | --------------------------------------------------------------- | --- |
-| formSelector        | `string`           | `.form`         | Root element selector                                           |
-| successClass        | `string \| null`   | `null`          | Class added to the field's parent element when field is valid   |
-| errorClass          | `string`           | `input-error`   | Class added to the field's parent element when field is invalid |
-| errorParentSelector | `string`           | `.form-group`   | Parent element selector for error class and message             |
-| skipFields          | `string \| null`   | `null`          | Selector for fields to skip during validation                   |
-| addClassToForm      | `string \| null`   | `null`          | Class added to form on submit if invalid                        |
-| addErrorMessage     | `boolean`          | `true`          | Enable/disable error messages                                   |
-| errorMessageClass   | `string`           | `error-message` | Class for error message element                                 |
-| sendUrl             | `string \| null`   | `null`          | URL to send form data                                           |
-| onSuccess           | `Function \| null` | `null`          | Callback after successful form submission                       |
-| onError             | `Function \| null` | `null`          | Callback after failed request submission                        |
-| messages            | `Object`           | {}              | Custom validation messages                                      |     |
+| Option              | Type             | Default       | Description                                                     |
+| ------------------- | ---------------- | ------------- | --------------------------------------------------------------- |
+| formSelector        | string           | .form         | Root element selector                                           |
+| successClass        | string \| null   | null          | Class added to the field's parent element when field is valid   |
+| errorClass          | string           | input-error   | Class added to the field's parent element when field is invalid |
+| errorParentSelector | string           | .form-group   | Parent element selector for error class and message             |
+| skipFields          | string \| null   | null          | Selector for fields to skip during validation                   |
+| addClassToForm      | string \| null   | null          | Class added to form on submit if invalid                        |
+| addErrorMessage     | boolean          | true          | Enable/disable error messages                                   |
+| errorMessageClass   | string           | error-message | Class for error message element                                 |
+| sendUrl             | string \| null   | null          | URL to send form data                                           |
+| onSuccess           | Function \| null | null          | Callback after successful form submission                       |
+| onError             | Function \| null | null          | Callback after failed request submission                        |
+| messages            | Object           | {}            | Custom validation messages                                      |
 
 ## Usage
 
