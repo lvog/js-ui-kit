@@ -1,0 +1,94 @@
+@use "abstracts/variables" as v;
+@use "abstracts/mixins" as m;
+
+.header {
+  padding: 15px 0;
+  position: relative;
+
+  .row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+}
+
+.nav-opener {
+  display: block;
+  width: 40px;
+  height: 40px;
+  border: none;
+  background: var(--color-light-gray);
+  border-radius: 50%;
+  overflow: hidden;
+  position: relative;
+
+  @include m.minMediaQuery(v.$breakpoint-tablet) {
+    display: none;
+  }
+
+  &:before,
+  &:after {
+    @include m.transition(all);
+    content: "";
+    width: 18px;
+    height: 2px;
+    position: absolute;
+    top: 16px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--color-black);
+    border-radius: 2px;
+  }
+
+  &:after {
+    top: 22px;
+  }
+
+  .nav-active & {
+    &:after,
+    &:before {
+      top: 19px;
+      transform: translateX(-50%) rotate(45deg);
+    }
+
+    &:after {
+      transform: translateX(-50%) rotate(-45deg);
+    }
+  }
+}
+
+.drop {
+  @include m.transition(opacity visibility);
+  @include m.maxMediaQuery(767px) {
+    max-height: calc(100dvh - 70px);
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    padding: 16px;
+    opacity: 0;
+    visibility: hidden;
+    background: var(--color-light-gray);
+    overflow-y: auto;
+    z-index: 9;
+  }
+
+  @include m.minMediaQuery(v.$breakpoint-tablet) {
+    max-width: calc(100% - 96px);
+    padding-left: 15px;
+  }
+
+  .nav-active & {
+    opacity: 1;
+    visibility: visible;
+  }
+}
+
+.menu,
+.submenu {
+  @include m.listReset;
+
+  a {
+    color: var(--color-black);
+  }
+}
