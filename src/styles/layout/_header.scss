@@ -1,7 +1,8 @@
 @use "sass:map";
-@use "abstracts/variables" as v;
-@use "abstracts/mixins" as m;
+@use "abstracts/media" as mq;
+@use "abstracts/mixins" as mx;
 @use "vendors/icomoon" as ic;
+@use "abstracts/helpers";
 
 .header {
   padding: 15px 0;
@@ -24,13 +25,13 @@
   overflow: hidden;
   position: relative;
 
-  @include m.minMediaQuery(v.$breakpoint-tablet) {
+  @include mq.media(">=tablet") {
     display: none;
   }
 
   &:before,
   &:after {
-    @include m.transition(all);
+    @include mx.transition(all);
     content: "";
     width: 18px;
     height: 2px;
@@ -60,8 +61,8 @@
 }
 
 .drop {
-  @include m.transition(opacity visibility);
-  @include m.maxMediaQuery(767px) {
+  @include mx.transition(opacity visibility);
+  @include mq.media("<tablet") {
     max-height: calc(100dvh - 70px);
     position: absolute;
     top: 100%;
@@ -75,11 +76,6 @@
     z-index: 9;
   }
 
-  @include m.minMediaQuery(v.$breakpoint-tablet) {
-    max-width: calc(100% - 96px);
-    padding-left: 15px;
-  }
-
   .nav-active & {
     opacity: 1;
     visibility: visible;
@@ -88,7 +84,7 @@
 
 .menu,
 .submenu {
-  @include m.listReset;
+  @extend %listreset;
 
   a {
     color: var(--color-black);

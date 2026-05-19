@@ -1,4 +1,4 @@
-@use "abstracts/mixins" as m;
+@use "abstracts/mixins" as mx;
 
 .slider {
   touch-action: pan-y;
@@ -8,7 +8,7 @@
 
   &.slide {
     .slider-track {
-      @include m.transition(
+      @include mx.transition(
         var(--slider-slide-property),
         var(--slider-duration),
         var(--slider-easing)
@@ -19,7 +19,7 @@
 
   &.fade {
     .slider-slide {
-      @include m.transition(
+      @include mx.transition(
         var(--slider-fade-property),
         var(--slider-duration),
         var(--slider-easing)
@@ -55,7 +55,7 @@
   }
 
   &-btn {
-    @include m.transition(color opacity);
+    @include mx.transition(color opacity);
     position: absolute;
     top: 50%;
     transform: translateY(-50%);
@@ -72,7 +72,7 @@
       pointer-events: none;
     }
 
-    @include m.hover {
+    @include mx.hover {
       color: var(--color-gray);
     }
   }
@@ -98,7 +98,7 @@
   }
 
   &-dot-btn {
-    @include m.transition(background);
+    @include mx.transition(background);
     width: 10px;
     height: 10px;
     padding: 0;
@@ -111,7 +111,7 @@
       background: var(--color-gray);
     }
 
-    @include m.hover {
+    @include mx.hover {
       background: var(--color-gray);
     }
   }

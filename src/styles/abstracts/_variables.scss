@@ -1,7 +1,10 @@
-$breakpoint-phone: 520px;
-$breakpoint-tablet: 768px;
-$breakpoint-desktop: 1024px;
-$breakpoint-widescreen: 1200px;
+$breakpoints: (
+  "phone": 576px,
+  "tablet": 768px,
+  "desktop": 1024px,
+  "laptop": 1280px,
+  "widescreen": 1440px,
+);
 
 :root {
   --color-black: #000;

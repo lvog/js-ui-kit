@@ -1,5 +1,4 @@
-@use "abstracts/variables" as v;
-@use "abstracts/mixins" as m;
+@use "abstracts/mixins" as mx;
 
 .form {
   max-width: 600px;
@@ -34,7 +33,7 @@ input[type="date"],
 input[type="password"],
 textarea,
 select {
-  @include m.transition(border-color box-shadow);
+  @include mx.transition(border-color box-shadow);
   appearance: none;
   width: 100%;
   height: var(--input-height);
@@ -106,7 +105,7 @@ textarea {
 
 .custom-radio,
 .custom-checkbox {
-  @include m.transition(color);
+  @include mx.transition(color);
   display: inline-flex;
   align-items: center;
   line-height: 1;
@@ -122,7 +121,7 @@ textarea {
   }
 
   .checkmark {
-    @include m.transition(background border-color);
+    @include mx.transition(background border-color);
     width: 20px;
     height: 20px;
     margin-right: 10px;
@@ -134,7 +133,7 @@ textarea {
     }
 
     &::before {
-      @include m.transition(opacity);
+      @include mx.transition(opacity);
       content: "";
       position: absolute;
       opacity: 0;
@@ -187,13 +186,13 @@ input[type="checkbox"]:checked ~ .checkmark::before {
 }
 
 .custom-file {
-  @include m.transition(color);
+  @include mx.transition(color);
   .input-error & {
     color: var(--input-error-color);
   }
 
   &::file-selector-button {
-    @include m.transition(background);
+    @include mx.transition(background);
     padding: 10px 20px;
     color: var(--color-white);
     background: var(--color-gray);
@@ -201,7 +200,7 @@ input[type="checkbox"]:checked ~ .checkmark::before {
     border-radius: 5px;
     cursor: pointer;
 
-    @include m.hover {
+    @include mx.hover {
       background: var(--color-black);
     }
   }

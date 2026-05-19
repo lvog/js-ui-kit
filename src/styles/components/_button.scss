@@ -1,7 +1,8 @@
-@use "abstracts/mixins" as m;
+@use "abstracts/mixins" as mx;
+@use "abstracts/media" as mq;
 
 .btn {
-  @include m.transition(background border-color);
+  @include mx.transition(background border-color);
   display: inline-block;
   vertical-align: middle;
   font-family: var(--btn-font-family);
@@ -14,13 +15,13 @@
   border-radius: var(--btn-border-radius);
   cursor: pointer;
 
-  @include m.hover {
+  @include mx.hover {
     color: var(--btn-color);
     background: var(--btn-hover-background);
     border-color: var(--btn-hover-border-color);
   }
 
-  @include m.minMediaQuery(768px) {
+  @include mq.media(">=tablet") {
     text-transform: uppercase;
   }
 }
