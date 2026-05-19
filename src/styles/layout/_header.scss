@@ -92,12 +92,38 @@
 }
 
 .menu {
+  @include mq.media(">=tablet") {
+    display: flex;
+    flex-wrap: wrap;
+    margin: 0 -5px;
+  }
+
+  > li {
+    @include mq.media(">=tablet") {
+      padding: 2px 5px;
+    }
+  }
+
   .has-dropdown {
+    @include mq.media(">=tablet") {
+      position: relative;
+    }
+
+    ul,
+    .submenu {
+      @include mq.media(">=tablet") {
+        @include mx.transition(opacity visibility);
+        padding: 5px;
+        background: var(--color-light-gray);
+      }
+    }
+
     > a {
       padding-right: 20px;
       position: relative;
 
       &::before {
+        @include mx.transition(transform);
         content: map.get(ic.$icons, "arrow-down");
         font-family: "icomoon";
         font-size: 8px;
@@ -111,13 +137,44 @@
     > ul,
     > .submenu {
       display: none;
+
+      @include mq.media(">=tablet") {
+        display: block;
+        position: absolute;
+        top: 100%;
+        left: 0;
+        opacity: 0;
+        visibility: hidden;
+      }
+    }
+
+    .has-dropdown {
+      > ul,
+      > .submenu {
+        @include mq.media(">=tablet") {
+          left: 100%;
+        }
+      }
     }
   }
 
   .active {
+    > a {
+      color: var(--color-orange);
+
+      &::before {
+        transform: translateY(-50%) rotate(-180deg);
+      }
+    }
+
     > ul,
     > .submenu {
       display: block;
+
+      @include mq.media(">=tablet") {
+        opacity: 1;
+        visibility: visible;
+      }
     }
   }
 }
