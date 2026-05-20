@@ -92,15 +92,17 @@
 }
 
 .menu {
+  font-size: 18px;
+
   @include mq.media(">=tablet") {
     display: flex;
     flex-wrap: wrap;
-    margin: 0 -5px;
+    margin: 0 -10px;
   }
 
   > li {
     @include mq.media(">=tablet") {
-      padding: 2px 5px;
+      padding: 2px 10px;
     }
   }
 
@@ -110,15 +112,6 @@
     @include mq.media(">=tablet") {
       position: relative;
       overflow: visible;
-    }
-
-    ul,
-    .submenu {
-      @include mq.media(">=tablet") {
-        @include mx.transition(opacity visibility);
-        padding: 5px;
-        background: var(--color-light-gray);
-      }
     }
 
     > a {
@@ -155,7 +148,7 @@
       > ul,
       > .submenu {
         @include mq.media(">=tablet") {
-          left: 100%;
+          left: calc(100% + 10px);
         }
       }
     }
@@ -179,5 +172,26 @@
         visibility: visible;
       }
     }
+  }
+
+  ul,
+  .submenu {
+    font-size: 16px;
+
+    @include mq.media(">=tablet") {
+      @include mx.transition(opacity visibility);
+      min-width: 150px;
+      padding: 10px;
+      background: var(--color-light-gray);
+    }
+
+    ul,
+    .submenu {
+      font-size: 14px;
+    }
+  }
+
+  a {
+    display: block;
   }
 }

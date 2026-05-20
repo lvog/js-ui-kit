@@ -8,12 +8,16 @@ export default class DropDownMenu {
     this.hideOnClickOutside = options.hideOnClickOutside ?? true;
     this.animateSubmenu = options.animateSubmenu ?? true;
     this.animateBelow = options.animateBelow || 768;
+    this.destroyAbove = options.destroyAbove || null;
+    this.destroyBelow = options.destroyBelow || null;
 
     this.dropdownClass = "has-dropdown";
-    this.animSpeed = 300;
+    this.animSpeed = 500;
 
     this.menu = document.querySelector(this.menuSelector);
     this.menuItems = [];
+
+    this.isInitialized = false;
   }
 
   init() {
@@ -24,9 +28,20 @@ export default class DropDownMenu {
       return;
     }
 
+    if (this.destroyAbove || this.destroyBelow) {
+      this.bindBreakpoint();
+      return;
+    }
+
+    this.initDropDownMenu();
+  }
+
+  initDropDownMenu() {
     this.findElements();
     this.addDropdownClass();
     this.bindEvents();
+
+    this.isInitialized = true;
   }
 
   findElements() {
@@ -87,6 +102,29 @@ export default class DropDownMenu {
     document.body.addEventListener("click", this.handleMenuOpen);
     document.body.addEventListener("click", this.handleClickOutsideMenu);
     this.menu.addEventListener("click", this.handleItemClick);
+  }
+
+  bindBreakpoint() {
+    this.checkBreakpoint();
+    this.handleBreakpointResize = () => this.checkBreakpoint();
+    window.addEventListener("resize", this.handleBreakpointResize);
+  }
+
+  checkBreakpoint() {
+    const width = window.innerWidth;
+
+    const shouldDestroy =
+      (this.destroyAbove !== null && width >= this.destroyAbove) ||
+      (this.destroyBelow !== null && width <= this.destroyBelow);
+
+    if (shouldDestroy && this.isInitialized) {
+      this.destroy();
+      return;
+    }
+
+    if (!shouldDestroy && !this.isInitialized) {
+      this.initDropDownMenu();
+    }
   }
 
   toggleMenu() {
@@ -206,5 +244,7 @@ export default class DropDownMenu {
     });
 
     document.body.classList.remove(this.menuActiveClass);
+
+    this.isInitialized = false;
   }
 }
