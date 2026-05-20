@@ -5,7 +5,9 @@ export default class DropDownMenu {
     this.menuDrop = options.menuDrop || ".drop";
     this.menuActiveClass = options.menuActiveClass || "nav-active";
     this.activeItemClass = options.activeItemClass || "active";
-    this.hideOnClickOutside = options.hideOnClickOutside ?? false;
+    this.hideOnClickOutside = options.hideOnClickOutside ?? true;
+
+    this.dropdownClass = "has-dropdown";
 
     this.menu = document.querySelector(this.menuSelector);
     this.menuItems = [];
@@ -33,7 +35,7 @@ export default class DropDownMenu {
       const submenu = item.querySelector(":scope > ul");
 
       if (submenu) {
-        item.classList.add("has-dropdown");
+        item.classList.add(this.dropdownClass);
       }
     });
   }
@@ -60,7 +62,7 @@ export default class DropDownMenu {
       if (!link) return;
 
       const item = link.closest("li");
-      if (!item.classList.contains("has-dropdown")) return;
+      if (!item.classList.contains(this.dropdownClass)) return;
 
       const trigger = item.querySelector(":scope > a");
       if (link !== trigger) return;
@@ -75,7 +77,12 @@ export default class DropDownMenu {
       }
     };
 
+    this.handleClickOutsideMenu = (e) => {
+      this.closeOthers(e.target);
+    };
+
     document.body.addEventListener("click", this.handleMenuOpen);
+    document.body.addEventListener("click", this.handleClickOutsideMenu);
     this.menu.addEventListener("click", this.handleItemClick);
   }
 
@@ -92,7 +99,7 @@ export default class DropDownMenu {
   }
 
   closeItem(item) {
-    const nestedItems = item.querySelectorAll(".has-dropdown");
+    const nestedItems = item.querySelectorAll(`.${this.dropdownClass}`);
 
     nestedItems.forEach((item) => {
       item.classList.remove(this.activeItemClass);
@@ -101,26 +108,43 @@ export default class DropDownMenu {
     item.classList.remove(this.activeItemClass);
   }
 
-  closeSibling(item) {
-    const parent = item.parentElement;
-    if (!parent) return;
+  closeOthers(target) {
+    const currentDropdown = target.closest(`.${this.dropdownClass}`);
 
-    parent.querySelectorAll(":scope > li.has-dropdown").forEach((sibling) => {
+    this.menuItems.forEach((item) => {
       if (
-        sibling !== item &&
-        sibling.classList.contains(this.activeItemClass)
+        item.classList.contains(this.activeItemClass) &&
+        item !== currentDropdown &&
+        !item.contains(target)
       ) {
-        this.closeItem(sibling);
+        this.closeItem(item);
       }
     });
   }
 
+  closeSibling(item) {
+    const parent = item.parentElement;
+    if (!parent) return;
+
+    parent
+      .querySelectorAll(`:scope > li.${this.dropdownClass}`)
+      .forEach((sibling) => {
+        if (
+          sibling !== item &&
+          sibling.classList.contains(this.activeItemClass)
+        ) {
+          this.closeItem(sibling);
+        }
+      });
+  }
+
   destroy() {
     document.body.removeEventListener("click", this.handleMenuOpen);
+    document.body.removeEventListener("click", this.handleClickOutsideMenu);
     this.menu.removeEventListener("click", this.handleItemClick);
 
     this.menuItems.forEach((item) => {
-      item.classList.remove("has-dropdown", this.activeItemClass);
+      item.classList.remove(this.dropdownClass, this.activeItemClass);
     });
 
     document.body.classList.remove(this.menuActiveClass);
