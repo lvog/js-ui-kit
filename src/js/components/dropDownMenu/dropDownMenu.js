@@ -6,8 +6,11 @@ export default class DropDownMenu {
     this.menuActiveClass = options.menuActiveClass || "nav-active";
     this.activeItemClass = options.activeItemClass || "active";
     this.hideOnClickOutside = options.hideOnClickOutside ?? true;
+    this.animateSubmenu = options.animateSubmenu ?? true;
+    this.animateBelow = options.animateBelow || 768;
 
     this.dropdownClass = "has-dropdown";
+    this.animSpeed = 300;
 
     this.menu = document.querySelector(this.menuSelector);
     this.menuItems = [];
@@ -61,8 +64,8 @@ export default class DropDownMenu {
       const link = e.target.closest("a");
       if (!link) return;
 
-      const item = link.closest("li");
-      if (!item.classList.contains(this.dropdownClass)) return;
+      const item = link.closest(`.${this.dropdownClass}`);
+      if (!item) return;
 
       const trigger = item.querySelector(":scope > a");
       if (link !== trigger) return;
@@ -96,10 +99,52 @@ export default class DropDownMenu {
 
   openItem(item) {
     item.classList.add(this.activeItemClass);
+
+    if (this.animateSubmenu && this.allowAnimation()) {
+      const submenu = this.getSubmenu(item);
+      if (!submenu) return;
+
+      const height = submenu.scrollHeight;
+
+      submenu.style.height = "0px";
+      submenu.style.transition = `height ${this.animSpeed}ms`;
+      submenu.getBoundingClientRect();
+      submenu.style.height = `${height}px`;
+
+      submenu.addEventListener(
+        "transitionend",
+        () => {
+          submenu.removeAttribute("style");
+        },
+        { once: true },
+      );
+    }
   }
 
   closeItem(item) {
     const nestedItems = item.querySelectorAll(`.${this.dropdownClass}`);
+
+    if (this.animateSubmenu && this.allowAnimation()) {
+      const submenu = this.getSubmenu(item);
+      if (!submenu) return;
+
+      submenu.style.display = "block";
+
+      const height = submenu.scrollHeight;
+
+      submenu.style.height = `${height}px`;
+      submenu.getBoundingClientRect();
+      submenu.style.transition = `height ${this.animSpeed}ms`;
+      submenu.style.height = "0px";
+
+      submenu.addEventListener(
+        "transitionend",
+        () => {
+          submenu.removeAttribute("style");
+        },
+        { once: true },
+      );
+    }
 
     nestedItems.forEach((item) => {
       item.classList.remove(this.activeItemClass);
@@ -138,12 +183,25 @@ export default class DropDownMenu {
       });
   }
 
+  getSubmenu(item) {
+    return item.querySelector(":scope > ul");
+  }
+
+  allowAnimation() {
+    return window.innerWidth < this.animateBelow;
+  }
+
   destroy() {
     document.body.removeEventListener("click", this.handleMenuOpen);
     document.body.removeEventListener("click", this.handleClickOutsideMenu);
     this.menu.removeEventListener("click", this.handleItemClick);
 
     this.menuItems.forEach((item) => {
+      const submenu = this.getSubmenu(item);
+      if (submenu) {
+        submenu.removeAttribute("style");
+      }
+
       item.classList.remove(this.dropdownClass, this.activeItemClass);
     });
 

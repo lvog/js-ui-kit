@@ -105,8 +105,11 @@
   }
 
   .has-dropdown {
+    overflow: hidden;
+
     @include mq.media(">=tablet") {
       position: relative;
+      overflow: visible;
     }
 
     ul,
