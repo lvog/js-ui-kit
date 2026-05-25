@@ -6,7 +6,7 @@ export default class DropDownMenu {
     this.menuActiveClass = options.menuActiveClass || "nav-active";
     this.activeItemClass = options.activeItemClass || "active";
     this.hideOnClickOutside = options.hideOnClickOutside ?? true;
-    this.animateSubmenu = options.animateSubmenu ?? true;
+    this.animateSubmenu = options.animateSubmenu ?? false;
     this.animateBelow = options.animateBelow || 768;
     this.destroyAbove = options.destroyAbove || null;
     this.destroyBelow = options.destroyBelow || null;
@@ -160,8 +160,6 @@ export default class DropDownMenu {
   }
 
   closeItem(item) {
-    const nestedItems = item.querySelectorAll(`.${this.dropdownClass}`);
-
     if (this.animateSubmenu && this.allowAnimation()) {
       const submenu = this.getSubmenu(item);
       if (!submenu) return;
@@ -184,14 +182,34 @@ export default class DropDownMenu {
       );
     }
 
-    nestedItems.forEach((item) => {
-      item.classList.remove(this.activeItemClass);
-    });
-
     item.classList.remove(this.activeItemClass);
   }
 
   closeOthers(target) {
+    if (this.animateSubmenu && this.allowAnimation()) {
+      this.menuItems.forEach((item) => {
+        if (!item.classList.contains(this.activeItemClass)) {
+          return;
+        }
+
+        // skip current dropdown and its children
+        if (item.contains(target)) {
+          return;
+        }
+
+        // close only top-level active items
+        const parentDropdown = item.parentElement?.closest(
+          `.${this.dropdownClass}`,
+        );
+
+        if (!parentDropdown) {
+          this.closeItem(item);
+        }
+      });
+
+      return;
+    }
+
     const currentDropdown = target.closest(`.${this.dropdownClass}`);
 
     this.menuItems.forEach((item) => {
