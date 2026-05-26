@@ -1,8 +1,26 @@
+/**
+ * DropDownMenu configuration options
+ * @typedef {Object} DropDownMenuOptions
+ * @property {string} [menuSelector] - Root element selector
+ * @property {string} [menuOpenerSelector] - Selector for the mobile menu toggle button
+ * @property {string} [menuDropSelector] - Selector for the menu drop container
+ * @property {string} [menuActiveClass] - Class added to body when menu is open
+ * @property {string} [activeItemClass] - Class added to active dropdown item
+ * @property {boolean} [hideOnClickOutside] - Close menu on outside click
+ * @property {boolean} [animateSubmenu] - Enable submenu height animation
+ * @property {number} [animateBelow] - Enable animation only below this width (px)
+ * @property {number} [animSpeed] - Animation duration (ms)
+ * @property {boolean} [accessibility] - Enable aria-expanded on triggers
+ * @property {number|null} [destroyAbove] - Disable dropdown above this width (px)
+ * @property {number|null} [destroyBelow] - Disable dropdown below this width (px)
+ */
+
 export default class DropDownMenu {
   constructor(options = {}) {
+    // User options
     this.menuSelector = options.menuSelector || ".menu";
-    this.menuOpener = options.menuOpener || ".nav-opener";
-    this.menuDrop = options.menuDrop || ".drop";
+    this.menuOpenerSelector = options.menuOpenerSelector || ".nav-opener";
+    this.menuDropSelector = options.menuDropSelector || ".drop";
     this.menuActiveClass = options.menuActiveClass || "nav-active";
     this.activeItemClass = options.activeItemClass || "active";
     this.hideOnClickOutside = options.hideOnClickOutside ?? true;
@@ -13,13 +31,18 @@ export default class DropDownMenu {
     this.destroyAbove = options.destroyAbove || null;
     this.destroyBelow = options.destroyBelow || null;
 
-    this.dropdownClass = "has-dropdown";
+    // Internal selectors
+    this.dropDownClass = "has-dropdown";
 
+    // DOM elements
     this.menu = document.querySelector(this.menuSelector);
     this.menuItems = [];
 
+    // Flag
     this.isInitialized = false;
   }
+
+  // Initialization
 
   init() {
     if (!this.menu) {
@@ -39,23 +62,25 @@ export default class DropDownMenu {
 
   initDropDownMenu() {
     this.findElements();
-    this.addDropdownClass();
+    this.addDropDownClass();
     this.initAria();
     this.bindEvents();
 
     this.isInitialized = true;
   }
 
+  // Setup
+
   findElements() {
     this.menuItems = this.menu.querySelectorAll("li");
   }
 
-  addDropdownClass() {
+  addDropDownClass() {
     this.menuItems.forEach((item) => {
       const submenu = item.querySelector(":scope > ul");
 
       if (submenu) {
-        item.classList.add(this.dropdownClass);
+        item.classList.add(this.dropDownClass);
       }
     });
   }
@@ -74,74 +99,8 @@ export default class DropDownMenu {
     });
   }
 
-  bindEvents() {
-    this.handleMenuOpen = (e) => {
-      const opener = e.target.closest(this.menuOpener);
-      const isDrop = e.target.closest(this.menuDrop);
-
-      if (opener) {
-        e.preventDefault();
-        this.toggleMenu();
-        return;
-      }
-
-      if (this.hideOnClickOutside && !isDrop) {
-        this.closeMenu();
-        return;
-      }
-    };
-
-    this.handleItemClick = (e) => {
-      const link = e.target.closest("a");
-      if (!link) return;
-
-      const item = link.closest(`.${this.dropdownClass}`);
-      if (!item) return;
-
-      const trigger = item.querySelector(":scope > a");
-      if (link !== trigger) return;
-
-      e.preventDefault();
-
-      if (item.classList.contains(this.activeItemClass)) {
-        this.closeItem(item);
-      } else {
-        this.closeSibling(item);
-        this.openItem(item);
-      }
-    };
-
-    this.handleClickOutsideMenu = (e) => {
-      this.closeOthers(e.target);
-    };
-
-    document.body.addEventListener("click", this.handleMenuOpen);
-    document.body.addEventListener("click", this.handleClickOutsideMenu);
-    this.menu.addEventListener("click", this.handleItemClick);
-  }
-
-  bindBreakpoint() {
-    this.checkBreakpoint();
-    this.handleBreakpointResize = () => this.checkBreakpoint();
-    window.addEventListener("resize", this.handleBreakpointResize);
-  }
-
-  checkBreakpoint() {
-    const width = window.innerWidth;
-
-    const shouldDestroy =
-      (this.destroyAbove !== null && width >= this.destroyAbove) ||
-      (this.destroyBelow !== null && width <= this.destroyBelow);
-
-    if (shouldDestroy && this.isInitialized) {
-      this.destroy();
-      return;
-    }
-
-    if (!shouldDestroy && !this.isInitialized) {
-      this.initDropDownMenu();
-    }
-  }
+  // Core Logic
+  // Main menu and dropdown behavior (open/close)
 
   toggleMenu() {
     document.body.classList.toggle(this.menuActiveClass);
@@ -158,7 +117,7 @@ export default class DropDownMenu {
       this.setAria(item, true);
     }
 
-    if (this.animateSubmenu && this.allowAnimation()) {
+    if (this.animateSubmenu && this.shouldAnimate()) {
       const submenu = this.getSubmenu(item);
       if (!submenu) return;
 
@@ -180,7 +139,7 @@ export default class DropDownMenu {
   }
 
   closeItem(item) {
-    if (this.animateSubmenu && this.allowAnimation()) {
+    if (this.animateSubmenu && this.shouldAnimate()) {
       const submenu = this.getSubmenu(item);
       if (!submenu) return;
 
@@ -210,7 +169,7 @@ export default class DropDownMenu {
   }
 
   closeOthers(target) {
-    if (this.animateSubmenu && this.allowAnimation()) {
+    if (this.animateSubmenu && this.shouldAnimate()) {
       this.menuItems.forEach((item) => {
         if (!item.classList.contains(this.activeItemClass)) {
           return;
@@ -222,11 +181,11 @@ export default class DropDownMenu {
         }
 
         // close only top-level active items
-        const parentDropdown = item.parentElement?.closest(
-          `.${this.dropdownClass}`,
+        const parentDropDown = item.parentElement?.closest(
+          `.${this.dropDownClass}`,
         );
 
-        if (!parentDropdown) {
+        if (!parentDropDown) {
           this.closeItem(item);
         }
       });
@@ -234,12 +193,12 @@ export default class DropDownMenu {
       return;
     }
 
-    const currentDropdown = target.closest(`.${this.dropdownClass}`);
+    const currentDropDown = target.closest(`.${this.dropDownClass}`);
 
     this.menuItems.forEach((item) => {
       if (
         item.classList.contains(this.activeItemClass) &&
-        item !== currentDropdown &&
+        item !== currentDropDown &&
         !item.contains(target)
       ) {
         this.closeItem(item);
@@ -247,12 +206,12 @@ export default class DropDownMenu {
     });
   }
 
-  closeSibling(item) {
+  closeSiblings(item) {
     const parent = item.parentElement;
     if (!parent) return;
 
     parent
-      .querySelectorAll(`:scope > li.${this.dropdownClass}`)
+      .querySelectorAll(`:scope > li.${this.dropDownClass}`)
       .forEach((sibling) => {
         if (
           sibling !== item &&
@@ -263,19 +222,102 @@ export default class DropDownMenu {
       });
   }
 
+  // UI helpers
+  // UI-related helpers (aria, animation)
+
+  setAria(item, state) {
+    const trigger = item.querySelector(":scope > a");
+
+    if (!trigger) return;
+
+    trigger.setAttribute("aria-expanded", state);
+  }
+
   getSubmenu(item) {
     return item.querySelector(":scope > ul");
   }
 
-  allowAnimation() {
+  shouldAnimate() {
     return window.innerWidth < this.animateBelow;
   }
 
-  setAria(item, state) {
-    const trigger = item.querySelector(":scope > a");
-    if (!trigger) return;
-    trigger.setAttribute("aria-expanded", state);
+  // Events
+  // All event listeners (user interaction)
+
+  bindEvents() {
+    this.handleMenuOpen = (e) => {
+      const opener = e.target.closest(this.menuOpenerSelector);
+      const isDrop = e.target.closest(this.menuDropSelector);
+
+      if (opener) {
+        e.preventDefault();
+        this.toggleMenu();
+        return;
+      }
+
+      if (this.hideOnClickOutside && !isDrop) {
+        this.closeMenu();
+        return;
+      }
+    };
+
+    this.handleItemClick = (e) => {
+      const link = e.target.closest("a");
+      if (!link) return;
+
+      const item = link.closest(`.${this.dropDownClass}`);
+      if (!item) return;
+
+      const trigger = item.querySelector(":scope > a");
+      if (link !== trigger) return;
+
+      e.preventDefault();
+
+      if (item.classList.contains(this.activeItemClass)) {
+        this.closeItem(item);
+      } else {
+        this.closeSiblings(item);
+        this.openItem(item);
+      }
+    };
+
+    this.handleClickOutsideMenu = (e) => {
+      this.closeOthers(e.target);
+    };
+
+    document.body.addEventListener("click", this.handleMenuOpen);
+    document.body.addEventListener("click", this.handleClickOutsideMenu);
+    this.menu.addEventListener("click", this.handleItemClick);
   }
+
+  bindBreakpoint() {
+    this.checkBreakpoint();
+    this.handleBreakpointResize = () => this.checkBreakpoint();
+    window.addEventListener("resize", this.handleBreakpointResize);
+  }
+
+  // Responsive
+  // Handles breakpoint-based behavior
+
+  checkBreakpoint() {
+    const width = window.innerWidth;
+
+    const shouldDestroy =
+      (this.destroyAbove !== null && width >= this.destroyAbove) ||
+      (this.destroyBelow !== null && width <= this.destroyBelow);
+
+    if (shouldDestroy && this.isInitialized) {
+      this.destroy();
+      return;
+    }
+
+    if (!shouldDestroy && !this.isInitialized) {
+      this.initDropDownMenu();
+    }
+  }
+
+  // Destroy
+  // Cleanup and reset
 
   destroy() {
     document.body.removeEventListener("click", this.handleMenuOpen);
@@ -294,7 +336,7 @@ export default class DropDownMenu {
         trigger.removeAttribute("aria-expanded");
       }
 
-      item.classList.remove(this.dropdownClass, this.activeItemClass);
+      item.classList.remove(this.dropDownClass, this.activeItemClass);
     });
 
     document.body.classList.remove(this.menuActiveClass);
