@@ -6,13 +6,14 @@ export default class DropDownMenu {
     this.menuActiveClass = options.menuActiveClass || "nav-active";
     this.activeItemClass = options.activeItemClass || "active";
     this.hideOnClickOutside = options.hideOnClickOutside ?? true;
-    this.animateSubmenu = options.animateSubmenu ?? false;
+    this.animateSubmenu = options.animateSubmenu ?? true;
     this.animateBelow = options.animateBelow || 768;
+    this.animSpeed = options.animSpeed || 500;
+    this.accessibility = options.accessibility ?? false;
     this.destroyAbove = options.destroyAbove || null;
     this.destroyBelow = options.destroyBelow || null;
 
     this.dropdownClass = "has-dropdown";
-    this.animSpeed = 500;
 
     this.menu = document.querySelector(this.menuSelector);
     this.menuItems = [];
@@ -39,6 +40,7 @@ export default class DropDownMenu {
   initDropDownMenu() {
     this.findElements();
     this.addDropdownClass();
+    this.initAria();
     this.bindEvents();
 
     this.isInitialized = true;
@@ -55,6 +57,20 @@ export default class DropDownMenu {
       if (submenu) {
         item.classList.add(this.dropdownClass);
       }
+    });
+  }
+
+  initAria() {
+    if (!this.accessibility) return;
+
+    this.menuItems.forEach((item) => {
+      const submenu = this.getSubmenu(item);
+      if (!submenu) return;
+
+      const trigger = item.querySelector(":scope > a");
+      if (!trigger) return;
+
+      trigger.setAttribute("aria-expanded", "false");
     });
   }
 
@@ -138,6 +154,10 @@ export default class DropDownMenu {
   openItem(item) {
     item.classList.add(this.activeItemClass);
 
+    if (this.accessibility) {
+      this.setAria(item, true);
+    }
+
     if (this.animateSubmenu && this.allowAnimation()) {
       const submenu = this.getSubmenu(item);
       if (!submenu) return;
@@ -183,6 +203,10 @@ export default class DropDownMenu {
     }
 
     item.classList.remove(this.activeItemClass);
+
+    if (this.accessibility) {
+      this.setAria(item, false);
+    }
   }
 
   closeOthers(target) {
@@ -247,6 +271,12 @@ export default class DropDownMenu {
     return window.innerWidth < this.animateBelow;
   }
 
+  setAria(item, state) {
+    const trigger = item.querySelector(":scope > a");
+    if (!trigger) return;
+    trigger.setAttribute("aria-expanded", state);
+  }
+
   destroy() {
     document.body.removeEventListener("click", this.handleMenuOpen);
     document.body.removeEventListener("click", this.handleClickOutsideMenu);
@@ -254,8 +284,14 @@ export default class DropDownMenu {
 
     this.menuItems.forEach((item) => {
       const submenu = this.getSubmenu(item);
+      const trigger = item.querySelector(":scope > a");
+
       if (submenu) {
         submenu.removeAttribute("style");
+      }
+
+      if (trigger && this.accessibility) {
+        trigger.removeAttribute("aria-expanded");
       }
 
       item.classList.remove(this.dropdownClass, this.activeItemClass);
