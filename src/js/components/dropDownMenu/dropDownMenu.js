@@ -27,7 +27,7 @@ export default class DropDownMenu {
     this.animateSubmenu = options.animateSubmenu ?? true;
     this.animateBelow = options.animateBelow || 768;
     this.animSpeed = options.animSpeed || 500;
-    this.accessibility = options.accessibility ?? false;
+    this.accessibility = options.accessibility ?? true;
     this.destroyAbove = options.destroyAbove || null;
     this.destroyBelow = options.destroyBelow || null;
 
@@ -222,6 +222,13 @@ export default class DropDownMenu {
       });
   }
 
+  closeAll() {
+    this.menuItems.forEach((item) => {
+      if (!item.classList.contains(this.activeItemClass)) return;
+      this.closeItem(item);
+    });
+  }
+
   // UI helpers
   // UI-related helpers (aria, animation)
 
@@ -282,11 +289,24 @@ export default class DropDownMenu {
     };
 
     this.handleClickOutsideMenu = (e) => {
+      const opener = e.target.closest(this.menuOpenerSelector);
+
+      if (opener) return;
+
       this.closeOthers(e.target);
+    };
+
+    this.handleKeyDown = (e) => {
+      if (!this.accessibility) return;
+
+      if (e.key === "Escape") {
+        this.closeAll();
+      }
     };
 
     document.body.addEventListener("click", this.handleMenuOpen);
     document.body.addEventListener("click", this.handleClickOutsideMenu);
+    document.body.addEventListener("keydown", this.handleKeyDown);
     this.menu.addEventListener("click", this.handleItemClick);
   }
 
@@ -320,6 +340,7 @@ export default class DropDownMenu {
   // Cleanup and reset
 
   destroy() {
+    document.body.removeEventListener("keydown", this.handleKeyDown);
     document.body.removeEventListener("click", this.handleMenuOpen);
     document.body.removeEventListener("click", this.handleClickOutsideMenu);
     this.menu.removeEventListener("click", this.handleItemClick);
