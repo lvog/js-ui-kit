@@ -4,6 +4,7 @@ import { initSlider } from "@js/components/slider/initSlider";
 import { initAccordion } from "@js/components/accordion/initAccordion";
 import { initTabs } from "@js/components/tabs/initTabs";
 import { initFormValidation } from "@js/components/formValidation/initFormValidation";
+import { initPopup } from "@js/components/popup/initPopup";
 
 document.addEventListener("DOMContentLoaded", () => {
   initDropDownMenu();
@@ -11,4 +12,5 @@ document.addEventListener("DOMContentLoaded", () => {
   initAccordion();
   initTabs();
   initFormValidation();
+  initPopup();
 });
