@@ -26,6 +26,7 @@
 
 .popup {
   @include mx.transition(opacity visibility);
+  max-width: 400px;
   position: fixed;
   top: 50%;
   left: 50%;
