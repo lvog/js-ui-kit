@@ -1,5 +1,20 @@
+/**
+ * InViewport configuration options
+ * @typedef {Object} InViewportOptions
+ * @property {string} [selector] - Elements selector
+ * @property {string} [activeClass] - Class added to element when in viewport
+ * @property {number} [threshold] - Percentage of element visibility to trigger (0-1)
+ * @property {string} [rootMargin] - Margin around the viewport (CSS syntax)
+ * @property {boolean} [once] - Trigger only once per element
+ * @property {Function|null} [onEnter] - Callback when element enters viewport
+ * @property {Function|null} [onLeave] - Callback when element leaves viewport
+ * @property {number|null} [destroyAbove] - Disable above this width (px)
+ * @property {number|null} [destroyBelow] - Disable below this width (px)
+ */
+
 export default class InViewport {
   constructor(options = {}) {
+    // User options
     this.selector = options.selector || ".viewport";
     this.activeClass = options.activeClass || "in-viewport";
     this.threshold = options.threshold ?? 0.1;
@@ -10,28 +25,47 @@ export default class InViewport {
     this.destroyAbove = options.destroyAbove || null;
     this.destroyBelow = options.destroyBelow || null;
 
-    this.elements = Array.from(document.querySelectorAll(this.selector));
+    // DOM elements
+    this.elements = [];
     this.observer = null;
 
+    // Flag
     this.isInitialized = false;
   }
 
-  init() {
-    if (this.elements.length === 0) {
-      console.error(`There are no elements with selector - ${this.selector}`);
-      return;
-    }
+  // Initialization
 
+  init() {
     if (this.destroyAbove || this.destroyBelow) {
       this.bindBreakpoint();
       return;
     }
 
-    this.createObserver();
+    this.initInViewport();
+  }
+
+  initInViewport() {
+    this.findElements();
+
+    if (this.elements.length === 0) {
+      console.error(`There are no elements with selector - ${this.selector}`);
+      return;
+    }
+
+    this.initObserver();
     this.isInitialized = true;
   }
 
-  createObserver() {
+  // Setup
+
+  findElements() {
+    this.elements = Array.from(document.querySelectorAll(this.selector));
+  }
+
+  // Core
+  // Creates and attaches IntersectionObserver to all elements
+
+  initObserver() {
     const options = {
       threshold: this.threshold,
       rootMargin: this.rootMargin,
@@ -63,11 +97,17 @@ export default class InViewport {
     });
   }
 
+  // Events
+  // Resize and breakpoint listeners
+
   bindBreakpoint() {
     this.checkBreakpoint();
     this.handleBreakpointResize = () => this.checkBreakpoint();
     window.addEventListener("resize", this.handleBreakpointResize);
   }
+
+  // Responsive
+  // Handles breakpoint-based behavior
 
   checkBreakpoint() {
     const width = window.innerWidth;
@@ -82,10 +122,12 @@ export default class InViewport {
     }
 
     if (!shouldDestroy && !this.isInitialized) {
-      this.createObserver();
-      this.isInitialized = true;
+      this.initInViewport();
     }
   }
+
+  // Destroy
+  // Cleanup and reset
 
   destroy() {
     if (this.observer) {
