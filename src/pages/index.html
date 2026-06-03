@@ -61,15 +61,15 @@
         </div>
       </header>
       <main class="main">
-        <section class="intro-section section">
+        <section class="intro-section section viewport fade-effect">
           <div class="container">
             <h1>JS-UI-KIT</h1>
           </div>
         </section>
-        <section class="slider-section section">
+        <section class="slider-section section viewport">
           <div class="container">
-            <h2>Slider</h2>
-            <div class="slider">
+            <h2 class="move-effect">Slider</h2>
+            <div class="slider fade-effect">
               <div class="slider-track">
                 <div class="slider-slide">
                   <h3>Slide 1</h3>
@@ -86,9 +86,9 @@
         </section>
         <section class="accordion-section section">
           <div class="container">
-            <h2>Accordion</h2>
-            <ul class="accordion">
-              <li class="accordion-item">
+            <h2 class="viewport move-effect">Accordion</h2>
+            <ul class="accordion viewport">
+              <li class="accordion-item move-effect">
                 <button class="accordion-opener" type="button">
                   Accordion Item #1<i
                     class="icon-arrow-down"
@@ -108,7 +108,7 @@
                   </div>
                 </div>
               </li>
-              <li class="accordion-item">
+              <li class="accordion-item move-effect">
                 <button class="accordion-opener" type="button">
                   Accordion Item #2<i
                     class="icon-arrow-down"
@@ -126,7 +126,7 @@
                   </div>
                 </div>
               </li>
-              <li class="accordion-item">
+              <li class="accordion-item move-effect">
                 <button class="accordion-opener" type="button">
                   Accordion Item #3<i
                     class="icon-arrow-down"
@@ -150,7 +150,7 @@
                   </div>
                 </div>
               </li>
-              <li class="accordion-item">
+              <li class="accordion-item move-effect">
                 <button class="accordion-opener" type="button">
                   Accordion Item #4<i
                     class="icon-arrow-down"
@@ -167,7 +167,7 @@
                   </div>
                 </div>
               </li>
-              <li class="accordion-item">
+              <li class="accordion-item move-effect">
                 <button class="accordion-opener" type="button">
                   Accordion Item #5<i
                     class="icon-arrow-down"
@@ -187,7 +187,7 @@
                   </div>
                 </div>
               </li>
-              <li class="accordion-item">
+              <li class="accordion-item move-effect">
                 <button class="accordion-opener" type="button">
                   Accordion Item #6<i
                     class="icon-arrow-down"
@@ -209,10 +209,10 @@
             </ul>
           </div>
         </section>
-        <section class="tabs-section section">
+        <section class="tabs-section section viewport">
           <div class="container">
             <h2>Tabs</h2>
-            <div class="tabs">
+            <div class="tabs fade-effect">
               <ul class="tabset">
                 <li class="tab-item">
                   <button class="tab-opener" type="button">Tab #1</button>
@@ -273,12 +273,12 @@
             </div>
           </div>
         </section>
-        <section class="section">
+        <section class="section viewport">
           <div class="container">
-            <h2>Form validation</h2>
-            <form class="form" action="#">
+            <h2 class="viewport move-effect">Form validation</h2>
+            <form class="form viewport" action="#">
               <!-- text: data-required + data-min + data-pattern -->
-              <div class="form-group">
+              <div class="form-group move-effect">
                 <label for="name">Name *</label>
                 <input
                   id="name"
@@ -293,7 +293,7 @@
                 />
               </div>
               <!-- tel: data-required + validated with internal tel pattern -->
-              <div class="form-group">
+              <div class="form-group move-effect">
                 <label for="phone">Phone *</label>
                 <input
                   id="phone"
@@ -306,7 +306,7 @@
                 />
               </div>
               <!-- email: data-required + validated with internal email pattern -->
-              <div class="form-group">
+              <div class="form-group move-effect">
                 <label for="email">Email *</label>
                 <input
                   id="email"
@@ -319,7 +319,7 @@
                 />
               </div>
               <!-- number: data-required + data-min + data-max + validated with internal number pattern -->
-              <div class="form-group">
+              <div class="form-group move-effect">
                 <label for="age">Age *</label>
                 <input
                   id="age"
@@ -335,7 +335,7 @@
                 />
               </div>
               <!-- text: optional validation + data-min + data-max -->
-              <div class="form-group">
+              <div class="form-group move-effect">
                 <label for="message">Message</label>
                 <textarea
                   id="message"
@@ -348,7 +348,7 @@
                 ></textarea>
               </div>
               <!-- select: data-required -->
-              <div class="form-group">
+              <div class="form-group move-effect">
                 <label for="select">Subject *</label>
                 <div class="custom-select">
                   <select id="select" name="select" data-required="true">
@@ -360,7 +360,7 @@
                 </div>
               </div>
               <!-- checkbox: data-required -> at least one -->
-              <div class="form-group">
+              <div class="form-group move-effect">
                 <span class="label">Interests * (choose at least one)</span>
                 <div class="form-control">
                   <label class="custom-checkbox">
@@ -394,7 +394,7 @@
                 </div>
               </div>
               <!-- radio: data-required -> choose one -->
-              <div class="form-group">
+              <div class="form-group move-effect">
                 <span class="label">Contact preference *</span>
                 <div class="form-control">
                   <label class="custom-radio">
@@ -438,7 +438,7 @@
                 </div>
               </div>
               <!-- password: data-required + validated with internal password pattern -->
-              <div class="form-group">
+              <div class="form-group move-effect">
                 <label for="password">Password *</label>
                 <input
                   id="password"
@@ -451,7 +451,7 @@
                 />
               </div>
               <!-- confirm: validated with data-confirm selector -->
-              <div class="form-group">
+              <div class="form-group move-effect">
                 <label for="confirm-password">Confirm password *</label>
                 <input
                   id="confirm-password"
@@ -465,7 +465,7 @@
                 />
               </div>
               <!-- skipFields: class="skip-field" + data-required -> validation attributes are ignored -->
-              <div class="form-group">
+              <div class="form-group move-effect">
                 <label for="promo">Promo code</label>
                 <input
                   class="skip-field"
@@ -479,7 +479,7 @@
                 />
               </div>
               <!-- file: data-required -->
-              <div class="form-group">
+              <div class="form-group move-effect">
                 <label for="file">File *</label>
                 <input
                   class="custom-file"
@@ -490,7 +490,7 @@
                 />
               </div>
               <!-- single checkbox: data-required -->
-              <div class="form-group">
+              <div class="form-group move-effect">
                 <label class="custom-checkbox" for="terms">
                   <input
                     id="terms"
@@ -503,13 +503,13 @@
                   I agree to the terms and conditions *
                 </label>
               </div>
-              <div class="btn-holder">
+              <div class="btn-holder move-effect">
                 <button class="btn" type="submit">Send Message</button>
               </div>
             </form>
           </div>
         </section>
-        <section class="popup-section section">
+        <section class="popup-section section viewport fade-effect">
           <div class="container">
             <h2>Popup</h2>
             <div class="popup-holder">
@@ -529,6 +529,15 @@
                 </p>
               </div>
             </div>
+          </div>
+        </section>
+        <section class="section viewport move-effect">
+          <div class="container">
+            <h2>Text Section</h2>
+            <p>
+              Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do
+              eiusmod tempor incididunt ut labore et dolore magna aliqua.
+            </p>
           </div>
         </section>
       </main>

@@ -2,7 +2,7 @@
 
 /// Hover styles only for devices with hover support
 /// usage
-/// @include m.hover {
+/// @include mx.hover {
 ///   color: red;
 /// }
 
@@ -16,10 +16,10 @@
 
 /// Transition css properties
 /// usage
-/// @include m.transition(color);
-/// @include m.transition(color, 1s, ease-in);
-/// @include m.transition(color background);
-/// @include m.transition(color background transform, 0.3s, ease);
+/// @include mx.transition(color);
+/// @include mx.transition(color, 1s, ease-in);
+/// @include mx.transition(color background);
+/// @include mx.transition(color background transform, 0.3s, ease);
 
 @mixin transition(
   $properties,
@@ -32,4 +32,17 @@
     $list: list.join($list, #{$str}, comma);
   }
   transition: $list;
+}
+
+/// Add transition delay for child elements
+/// usage
+/// @include mx.delay(5);
+/// @include mx.delay(5, 0.15s);
+
+@mixin delay($count, $step: 0.3s) {
+  @for $i from 1 through $count {
+    &:nth-child(#{$i}) {
+      transition-delay: $step * ($i - 1);
+    }
+  }
 }

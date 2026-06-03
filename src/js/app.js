@@ -5,6 +5,7 @@ import { initAccordion } from "@js/components/accordion/initAccordion";
 import { initTabs } from "@js/components/tabs/initTabs";
 import { initFormValidation } from "@js/components/formValidation/initFormValidation";
 import { initPopup } from "@js/components/popup/initPopup";
+import { initInViewport } from "@js/components/inViewport/initInViewport";
 
 document.addEventListener("DOMContentLoaded", () => {
   initDropDownMenu();
@@ -13,4 +14,5 @@ document.addEventListener("DOMContentLoaded", () => {
   initTabs();
   initFormValidation();
   initPopup();
+  initInViewport();
 });

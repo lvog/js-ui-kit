@@ -1,0 +1,55 @@
+@use "abstracts/mixins" as mx;
+
+.viewport {
+  .fade-effect,
+  .move-effect {
+    opacity: 0;
+  }
+
+  .fade-effect {
+    @include mx.transition(opacity, 0.7s);
+  }
+
+  .move-effect {
+    @include mx.transition(transform opacity, 0.7s);
+
+    transform: translateY(50px);
+  }
+
+  &.in-viewport {
+    .move-effect,
+    .fade-effect {
+      opacity: 1;
+    }
+
+    .move-effect {
+      transform: translate(0);
+    }
+  }
+
+  &.fade-effect,
+  &.move-effect {
+    opacity: 0;
+  }
+
+  &.fade-effect {
+    @include mx.transition(opacity, 0.7s);
+  }
+
+  &.move-effect {
+    @include mx.transition(transform opacity, 0.7s);
+
+    transform: translateY(50px);
+  }
+
+  &.in-viewport {
+    &.move-effect,
+    &.fade-effect {
+      opacity: 1;
+    }
+
+    &.move-effect {
+      transform: translate(0);
+    }
+  }
+}

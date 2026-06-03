@@ -1,8 +1,22 @@
+@use "abstracts/mixins" as mx;
+
 .section {
   padding: 50px 0;
 
   h1,
   h2 {
     text-align: center;
+  }
+}
+
+.accordion {
+  .move-effect {
+    @include mx.delay(6);
+  }
+}
+
+.form {
+  .move-effect {
+    @include mx.delay(14);
   }
 }
