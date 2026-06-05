@@ -6,6 +6,7 @@ export default class CustomSelect {
     this.dropClass = "js-select-drop";
     this.optionsListClass = "js-select-options-list";
     this.optionClass = "js-select-option";
+    this.activeClass = "js-drop-active";
     this.hiddenClass = "js-hidden";
 
     this.holders = document.querySelectorAll(this.holderSelector);
@@ -20,6 +21,7 @@ export default class CustomSelect {
     }
 
     this.buildSelects();
+    this.bindEvents();
   }
 
   buildSelects() {
@@ -87,6 +89,28 @@ export default class CustomSelect {
 
         list.appendChild(option);
       });
+  }
+
+  bindEvents() {
+    this.handleClick = (e) => {
+      const opener = e.target.closest(`.${this.openerClass}`);
+      const drop = e.target.closest(`.${this.dropClass}`);
+
+      if (opener) {
+        const holder = opener.closest(this.holderSelector);
+
+        holder.classList.toggle(this.activeClass);
+        return;
+      }
+
+      if (!drop) {
+        this.holders.forEach((holder) => {
+          holder.classList.remove(this.activeClass);
+        });
+      }
+    };
+
+    document.addEventListener("click", this.handleClick);
   }
 
   hideNativeSelect(select) {

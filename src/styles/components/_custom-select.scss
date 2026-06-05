@@ -6,6 +6,16 @@
   height: 1px;
 }
 
-.custom-select {
+.js-select {
   position: relative;
+}
+
+.js-select-drop {
+  opacity: 0;
+  visibility: hidden;
+
+  .js-drop-active & {
+    opacity: 1;
+    visibility: visible;
+  }
 }
