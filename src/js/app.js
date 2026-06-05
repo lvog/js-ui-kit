@@ -6,6 +6,7 @@ import { initTabs } from "@js/components/tabs/initTabs";
 import { initFormValidation } from "@js/components/formValidation/initFormValidation";
 import { initPopup } from "@js/components/popup/initPopup";
 import { initInViewport } from "@js/components/inViewport/initInViewport";
+import { initCustomSelect } from "@js/components/customSelect/initCustomSelect";
 
 document.addEventListener("DOMContentLoaded", () => {
   initDropDownMenu();
@@ -14,5 +15,6 @@ document.addEventListener("DOMContentLoaded", () => {
   initTabs();
   initFormValidation();
   initPopup();
+  initCustomSelect();
   initInViewport();
 });
