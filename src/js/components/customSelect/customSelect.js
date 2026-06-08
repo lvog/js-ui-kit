@@ -7,6 +7,7 @@ export default class CustomSelect {
     this.optionsListClass = "js-select-options-list";
     this.optionClass = "js-select-option";
     this.activeClass = "js-drop-active";
+    this.selectedClass = "js-option-selected";
     this.hiddenClass = "js-hidden";
 
     this.holders = document.querySelectorAll(this.holderSelector);
@@ -95,18 +96,28 @@ export default class CustomSelect {
     this.handleClick = (e) => {
       const opener = e.target.closest(`.${this.openerClass}`);
       const drop = e.target.closest(`.${this.dropClass}`);
+      const option = e.target.closest(`.${this.optionClass}`);
 
       if (opener) {
         const holder = opener.closest(this.holderSelector);
+        const isActive = holder.classList.contains(this.activeClass);
 
-        holder.classList.toggle(this.activeClass);
+        this.closeAll();
+
+        if (!isActive) {
+          holder.classList.add(this.activeClass);
+        }
+
+        return;
+      }
+
+      if (option) {
+        this.selectOption(option);
         return;
       }
 
       if (!drop) {
-        this.holders.forEach((holder) => {
-          holder.classList.remove(this.activeClass);
-        });
+        this.closeAll();
       }
     };
 
@@ -115,5 +126,33 @@ export default class CustomSelect {
 
   hideNativeSelect(select) {
     select.classList.add(this.hiddenClass);
+  }
+
+  selectOption(option) {
+    const holder = option.closest(this.holderSelector);
+    const instance = this.instances.find((i) => i.holder === holder);
+
+    if (!instance) return;
+
+    const { opener, select } = instance;
+
+    opener.textContent = option.textContent;
+    select.value = option.dataset.value;
+    select.dispatchEvent(new Event("change", { bubbles: true }));
+
+    const currentSelected = holder.querySelector(
+      `.${this.optionClass}.${this.selectedClass}`,
+    );
+
+    currentSelected?.classList.remove(this.selectedClass);
+
+    option.classList.add(this.selectedClass);
+    holder.classList.remove(this.activeClass);
+  }
+
+  closeAll() {
+    this.instances.forEach((instance) => {
+      instance.holder.classList.remove(this.activeClass);
+    });
   }
 }
