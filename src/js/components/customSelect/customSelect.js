@@ -8,6 +8,7 @@ export default class CustomSelect {
     this.optionClass = "js-select-option";
     this.activeClass = "js-drop-active";
     this.selectedClass = "js-option-selected";
+    this.flippedClass = "js-drop-flipped";
     this.hiddenClass = "js-hidden";
 
     this.holders = document.querySelectorAll(this.holderSelector);
@@ -105,6 +106,7 @@ export default class CustomSelect {
         this.closeAll();
 
         if (!isActive) {
+          this.updateDropPosition(holder);
           holder.classList.add(this.activeClass);
         }
 
@@ -154,5 +156,21 @@ export default class CustomSelect {
     this.instances.forEach((instance) => {
       instance.holder.classList.remove(this.activeClass);
     });
+  }
+
+  updateDropPosition(holder) {
+    const drop = holder.querySelector(`.${this.dropClass}`);
+    const opener = holder.querySelector(`.${this.openerClass}`);
+
+    if (!drop) return;
+
+    const dropRect = drop.getBoundingClientRect();
+    const openerRect = opener.getBoundingClientRect();
+    console.log(dropRect.height);
+
+    const spaceBelow = window.innerHeight - openerRect.bottom;
+    const needsFlip = dropRect.height > spaceBelow;
+
+    holder.classList.toggle(this.flippedClass, needsFlip);
   }
 }

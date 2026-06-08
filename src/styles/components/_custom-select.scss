@@ -66,6 +66,11 @@
       opacity: 1;
       visibility: visible;
     }
+
+    .js-drop-flipped & {
+      top: auto;
+      bottom: 100%;
+    }
   }
 
   &-options-list {
