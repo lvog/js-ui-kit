@@ -59,8 +59,13 @@
     z-index: 9999;
     border: 1px solid var(--color-black);
     border-radius: 5px;
+    overflow: hidden;
     opacity: 0;
     visibility: hidden;
+
+    &.js-scroll-active {
+      padding-right: 16px;
+    }
 
     .js-drop-active & {
       opacity: 1;
@@ -70,6 +75,18 @@
     .js-drop-flipped & {
       top: auto;
       bottom: 100%;
+    }
+  }
+
+  &-content {
+    .js-scroll-active & {
+      scrollbar-width: none;
+      -ms-overflow-style: none;
+      overflow-y: auto;
+
+      &::-webkit-scrollbar {
+        display: none;
+      }
     }
   }
 
@@ -89,5 +106,14 @@
     &.js-option-selected {
       background: var(--color-light-gray);
     }
+  }
+
+  &-scrollbar {
+    width: 6px;
+    position: absolute;
+    top: 0;
+    right: 5px;
+    background: var(--color-gray);
+    border-radius: 5px;
   }
 }
