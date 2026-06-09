@@ -67,12 +67,12 @@
       padding-right: 16px;
     }
 
-    .js-drop-active & {
+    &.js-drop-active {
       opacity: 1;
       visibility: visible;
     }
 
-    .js-drop-flipped & {
+    &.js-drop-flipped {
       top: auto;
       bottom: 100%;
     }

@@ -3,6 +3,7 @@ export default class CustomSelect {
     this.holderSelector = options.holderSelector || "js-select";
     this.maxVisibleItems = options.maxVisibleItems || 5;
     this.scrollbarOffset = options.scrollbarOffset || 5;
+    this.dropInBody = options.dropInBody ?? true;
 
     this.openerClass = `${this.holderSelector}-opener`;
     this.dropClass = `${this.holderSelector}-drop`;
@@ -45,7 +46,13 @@ export default class CustomSelect {
       const opener = this.buildOpener();
       const drop = this.buildDropDown();
 
-      holder.append(opener, drop);
+      holder.append(opener);
+
+      if (this.dropInBody) {
+        document.body.appendChild(drop);
+      } else {
+        holder.appendChild(drop);
+      }
 
       const content = this.buildContentHolder();
       drop.appendChild(content);
@@ -152,12 +159,14 @@ export default class CustomSelect {
         this.closeAll();
 
         if (!isActive) {
-          this.updateDropPosition(holder);
-          holder.classList.add(this.activeClass);
-
           const instance = this.instances.find((i) => i.holder === holder);
 
           if (!instance) return;
+
+          this.updateDropPosition(instance);
+
+          holder.classList.add(this.activeClass);
+          instance.drop.classList.add(this.activeClass);
 
           instance.refreshScrollbar?.();
         }
@@ -167,6 +176,7 @@ export default class CustomSelect {
 
       if (option) {
         this.selectOption(option);
+        this.closeAll();
 
         return;
       }
@@ -247,8 +257,8 @@ export default class CustomSelect {
   }
 
   selectOption(option) {
-    const holder = option.closest(`.${this.holderSelector}`);
-    const instance = this.instances.find((i) => i.holder === holder);
+    const drop = option.closest(`.${this.dropClass}`);
+    const instance = this.instances.find((i) => i.drop === drop);
 
     if (!instance) return;
 
@@ -258,35 +268,45 @@ export default class CustomSelect {
     select.value = option.dataset.value;
     select.dispatchEvent(new Event("change", { bubbles: true }));
 
-    const currentSelected = holder.querySelector(
+    const currentSelected = drop.querySelector(
       `.${this.optionClass}.${this.selectedClass}`,
     );
 
     currentSelected?.classList.remove(this.selectedClass);
 
     option.classList.add(this.selectedClass);
-    holder.classList.remove(this.activeClass);
   }
 
   closeAll() {
     this.instances.forEach((instance) => {
       instance.holder.classList.remove(this.activeClass);
+      instance.drop.classList.remove(this.activeClass);
     });
   }
 
-  updateDropPosition(holder) {
-    const drop = holder.querySelector(`.${this.dropClass}`);
-    const opener = holder.querySelector(`.${this.openerClass}`);
-
-    if (!drop) return;
+  updateDropPosition(instance) {
+    const { holder, opener, drop } = instance;
 
     const dropRect = drop.getBoundingClientRect();
     const openerRect = opener.getBoundingClientRect();
-
     const spaceBelow = window.innerHeight - openerRect.bottom;
     const needsFlip = dropRect.height > spaceBelow;
 
+    if (this.dropInBody) {
+      drop.style.left = `${openerRect.left + window.scrollX}px`;
+      drop.style.width = `${openerRect.width}px`;
+
+      if (needsFlip) {
+        drop.style.top = `${openerRect.top + window.scrollY - dropRect.height}px`;
+      } else {
+        drop.style.top = `${openerRect.bottom + window.scrollY}px`;
+      }
+
+      drop.style.bottom = "auto";
+    }
+
     holder.classList.toggle(this.flippedClass, needsFlip);
+    drop.classList.toggle(this.flippedClass, needsFlip);
   }
 
   updateDropHeight(content) {
