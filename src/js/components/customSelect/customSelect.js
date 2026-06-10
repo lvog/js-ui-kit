@@ -374,4 +374,17 @@ export default class CustomSelect {
   isTouchDevice() {
     return window.matchMedia("(pointer: coarse)").matches;
   }
+
+  destroy() {
+    document.removeEventListener("click", this.handleClick);
+
+    this.instances.forEach(({ holder, select, opener, drop }) => {
+      opener.remove();
+      drop.remove();
+      select.classList.remove(this.hiddenClass, this.nativeSelectClass);
+      holder.classList.remove(this.activeClass, this.flippedClass);
+    });
+
+    this.instances = [];
+  }
 }
