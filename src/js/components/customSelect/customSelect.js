@@ -3,7 +3,8 @@ export default class CustomSelect {
     this.holderSelector = options.holderSelector || "js-select";
     this.maxVisibleItems = options.maxVisibleItems || 5;
     this.scrollbarOffset = options.scrollbarOffset || 5;
-    this.dropInBody = options.dropInBody ?? true;
+    this.dropInBody = options.dropInBody ?? false;
+    this.nativeSelectOnMobile = options.nativeSelectOnMobile ?? true;
 
     this.openerClass = `${this.holderSelector}-opener`;
     this.dropClass = `${this.holderSelector}-drop`;
@@ -15,7 +16,9 @@ export default class CustomSelect {
     this.selectedClass = "js-option-selected";
     this.flippedClass = "js-drop-flipped";
     this.hiddenClass = "js-hidden";
+    this.hiddenOptionClass = "hideme";
     this.activeScrollbar = "js-scroll-active";
+    this.nativeSelectClass = "js-select-native";
 
     this.holders = document.querySelectorAll(`.${this.holderSelector}`);
 
@@ -41,12 +44,12 @@ export default class CustomSelect {
         return;
       }
 
-      this.hideNativeSelect(select);
+      this.updateSelectMode(select);
 
-      const opener = this.buildOpener();
-      const drop = this.buildDropDown();
-
+      const opener = this.buildOpener(select);
       holder.append(opener);
+
+      const drop = this.buildDropDown();
 
       if (this.dropInBody) {
         document.body.appendChild(drop);
@@ -57,7 +60,7 @@ export default class CustomSelect {
       const content = this.buildContentHolder();
       drop.appendChild(content);
 
-      const list = this.buildOptionsList(select, opener);
+      const list = this.buildOptionsList(select);
       content.appendChild(list);
 
       const hasScrollbar = this.updateDropHeight(content);
@@ -87,14 +90,19 @@ export default class CustomSelect {
           drop,
         });
       }
+      this.bindNativeSelect(select, opener);
     });
   }
 
-  buildOpener() {
+  buildOpener(select) {
     const opener = document.createElement("button");
 
     opener.type = "button";
     opener.classList.add(this.openerClass);
+
+    const selectedOption = this.findSelectedOption(select);
+
+    opener.textContent = selectedOption.textContent;
 
     return opener;
   }
@@ -115,25 +123,30 @@ export default class CustomSelect {
     return content;
   }
 
-  buildOptionsList(select, opener) {
+  buildOptionsList(select) {
     const options = select.options;
-
-    opener.textContent = options[0].textContent;
+    const selectedIndex = select.selectedIndex;
 
     const list = document.createElement("ul");
     list.classList.add(this.optionsListClass);
 
-    Array.from(options)
-      .slice(1)
-      .forEach((item) => {
-        const option = document.createElement("li");
+    Array.from(options).forEach((item, index) => {
+      const option = document.createElement("li");
 
-        option.classList.add(this.optionClass);
-        option.textContent = item.textContent;
-        option.dataset.value = item.value;
+      if (index === selectedIndex) {
+        option.classList.add(this.selectedClass);
+      }
 
-        list.appendChild(option);
-      });
+      if (item.classList.contains(this.hiddenOptionClass)) {
+        option.classList.add(`${this.optionClass}-${this.hiddenOptionClass}`);
+      }
+
+      option.classList.add(this.optionClass);
+      option.textContent = item.textContent;
+      option.dataset.value = item.value;
+
+      list.appendChild(option);
+    });
 
     return list;
   }
@@ -154,14 +167,27 @@ export default class CustomSelect {
 
       if (opener) {
         const holder = opener.closest(`.${this.holderSelector}`);
+        const select = holder.querySelector("select");
         const isActive = holder.classList.contains(this.activeClass);
 
+        this.updateSelectMode(select);
         this.closeAll();
 
         if (!isActive) {
           const instance = this.instances.find((i) => i.holder === holder);
 
           if (!instance) return;
+
+          if (this.nativeSelectOnMobile && this.isTouchDevice()) {
+            if (typeof instance.select.showPicker === "function") {
+              instance.select.showPicker();
+            } else {
+              instance.select.focus();
+              instance.select.click();
+            }
+
+            return;
+          }
 
           this.updateDropPosition(instance);
 
@@ -187,6 +213,12 @@ export default class CustomSelect {
     };
 
     document.addEventListener("click", this.handleClick);
+  }
+
+  bindNativeSelect(select, opener) {
+    select.addEventListener("change", () => {
+      opener.textContent = select.options[select.selectedIndex].textContent;
+    });
   }
 
   initScrollbar(content, scrollbar) {
@@ -252,7 +284,13 @@ export default class CustomSelect {
     };
   }
 
-  hideNativeSelect(select) {
+  updateSelectMode(select) {
+    if (this.nativeSelectOnMobile && this.isTouchDevice()) {
+      select.classList.remove(this.hiddenClass);
+      select.classList.add(this.nativeSelectClass);
+      return;
+    }
+    select.classList.remove(this.nativeSelectClass);
     select.classList.add(this.hiddenClass);
   }
 
@@ -262,9 +300,8 @@ export default class CustomSelect {
 
     if (!instance) return;
 
-    const { opener, select } = instance;
+    const { select } = instance;
 
-    opener.textContent = option.textContent;
     select.value = option.dataset.value;
     select.dispatchEvent(new Event("change", { bubbles: true }));
 
@@ -312,12 +349,29 @@ export default class CustomSelect {
   updateDropHeight(content) {
     const options = content.querySelectorAll(`.${this.optionClass}`);
 
-    if (options.length <= this.maxVisibleItems) return false;
+    const visibleOptions = [...options].filter(
+      (option) =>
+        !option.classList.contains(
+          `${this.optionClass}-${this.hiddenOptionClass}`,
+        ),
+    );
 
-    const optionHeight = options[0].offsetHeight;
+    if (visibleOptions.length <= this.maxVisibleItems) {
+      return false;
+    }
+
+    const optionHeight = visibleOptions[0].offsetHeight;
 
     content.style.maxHeight = `${optionHeight * this.maxVisibleItems}px`;
 
     return true;
+  }
+
+  findSelectedOption(select) {
+    return select.options[select.selectedIndex] || select.options[0];
+  }
+
+  isTouchDevice() {
+    return window.matchMedia("(pointer: coarse)").matches;
   }
 }

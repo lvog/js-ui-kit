@@ -16,6 +16,16 @@
   position: relative;
   margin-bottom: 20px;
 
+  &-native {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    opacity: 0;
+    pointer-events: none;
+  }
+
   &-opener {
     display: inline-block;
     vertical-align: middle;
@@ -101,6 +111,10 @@
 
     @include mx.hover {
       background: var(--color-light-gray);
+    }
+
+    &-hideme {
+      display: none;
     }
 
     &.js-option-selected {
