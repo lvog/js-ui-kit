@@ -122,6 +122,7 @@
       display: none;
     }
 
+    &.js-option-focused,
     &.js-option-selected {
       background: var(--color-light-gray);
     }

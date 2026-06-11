@@ -5,6 +5,7 @@ export default class CustomSelect {
     this.scrollbarOffset = options.scrollbarOffset || 5;
     this.dropInBody = options.dropInBody ?? false;
     this.nativeSelectOnMobile = options.nativeSelectOnMobile ?? true;
+    this.keyboardNavigation = options.keyboardNavigation ?? false;
 
     this.openerClass = `${this.holderSelector}-opener`;
     this.dropClass = `${this.holderSelector}-drop`;
@@ -14,6 +15,7 @@ export default class CustomSelect {
     this.optionClass = `${this.holderSelector}-option`;
     this.activeClass = "js-drop-active";
     this.selectedClass = "js-option-selected";
+    this.focusedClass = "js-option-focused";
     this.flippedClass = "js-drop-flipped";
     this.hiddenClass = "js-hidden";
     this.hiddenOptionClass = "hideme";
@@ -196,6 +198,14 @@ export default class CustomSelect {
         instance.drop.classList.add(this.activeClass);
         instance.refreshScrollbar?.();
 
+        const options = instance.drop.querySelectorAll(`.${this.optionClass}`);
+        instance.focusedIndex = this.getFocusableIndex(
+          options,
+          instance.select.selectedIndex,
+        );
+
+        this.highlightOption(options, instance.focusedIndex);
+
         return;
       }
 
@@ -215,7 +225,56 @@ export default class CustomSelect {
       }
     };
 
+    this.handleKeyDown = (e) => {
+      if (!this.keyboardNavigation) return;
+
+      const instance = this.instances.find((instance) =>
+        instance.holder.classList.contains(this.activeClass),
+      );
+
+      if (!instance) return;
+
+      const drop = instance.drop;
+      const options = drop.querySelectorAll(`.${this.optionClass}`);
+      const option = options[instance.focusedIndex];
+
+      switch (e.key) {
+        case "ArrowDown":
+          e.preventDefault();
+          instance.focusedIndex = this.getNextIndex(
+            options,
+            instance.focusedIndex,
+            1,
+          );
+          this.highlightOption(options, instance.focusedIndex);
+          break;
+        case "ArrowUp":
+          e.preventDefault();
+          instance.focusedIndex = this.getNextIndex(
+            options,
+            instance.focusedIndex,
+            -1,
+          );
+          this.highlightOption(options, instance.focusedIndex);
+          break;
+        case "Escape":
+          this.closeAll();
+          break;
+        case "Enter":
+          e.preventDefault();
+          this.selectOption(option);
+          this.closeAll();
+          break;
+      }
+    };
+
+    this.handleResize = () => {
+      this.closeAll();
+    };
+
     document.addEventListener("click", this.handleClick);
+    document.addEventListener("keydown", this.handleKeyDown);
+    window.addEventListener("resize", this.handleResize);
   }
 
   bindNativeSelect(select, opener) {
@@ -323,6 +382,58 @@ export default class CustomSelect {
     option.classList.add(this.selectedClass);
   }
 
+  getFocusableIndex(options, selectedIndex) {
+    const option = options[selectedIndex];
+
+    const isDisabled = option?.classList.contains(this.disabledOptionClass);
+
+    const isHidden = option?.classList.contains(
+      `${this.optionClass}-${this.hiddenOptionClass}`,
+    );
+
+    if (!isDisabled && !isHidden) {
+      return selectedIndex;
+    }
+
+    return this.getNextIndex(options, selectedIndex, 1);
+  }
+
+  getNextIndex(options, currentIndex, direction) {
+    let index = currentIndex;
+
+    while (true) {
+      index += direction;
+
+      if (index < 0 || index >= options.length) {
+        return currentIndex;
+      }
+
+      const option = options[index];
+
+      const isDisabled = option.classList.contains(this.disabledOptionClass);
+
+      const isHidden = option.classList.contains(
+        `${this.optionClass}-${this.hiddenOptionClass}`,
+      );
+
+      if (!isDisabled && !isHidden) {
+        return index;
+      }
+    }
+  }
+
+  highlightOption(options, index) {
+    options.forEach((option) => option.classList.remove(this.focusedClass));
+
+    const activeOption = options[index];
+
+    activeOption.classList.add(this.focusedClass);
+
+    activeOption.scrollIntoView({
+      block: "nearest",
+    });
+  }
+
   closeAll() {
     this.instances.forEach((instance) => {
       this.removeCustomDrop(instance);
@@ -406,6 +517,8 @@ export default class CustomSelect {
 
   destroy() {
     document.removeEventListener("click", this.handleClick);
+    document.removeEventListener("keydown", this.handleKeyDown);
+    window.removeEventListener("resize", this.handleResize);
 
     this.closeAll();
 
