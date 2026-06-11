@@ -49,49 +49,38 @@ export default class CustomSelect {
       const opener = this.buildOpener(select);
       holder.append(opener);
 
-      const drop = this.buildDropDown();
-
-      if (this.dropInBody) {
-        document.body.appendChild(drop);
-      } else {
-        holder.appendChild(drop);
-      }
-
-      const content = this.buildContentHolder();
-      drop.appendChild(content);
-
-      const list = this.buildOptionsList(select);
-      content.appendChild(list);
-
-      const hasScrollbar = this.updateDropHeight(content);
-      let scrollbar;
-
-      if (hasScrollbar) {
-        scrollbar = this.buildScrollbar();
-        drop.appendChild(scrollbar);
-
-        drop.classList.add(this.activeScrollbar);
-
-        const refreshScrollbar = this.initScrollbar(content, scrollbar);
-
-        this.instances.push({
-          holder,
-          select,
-          opener,
-          drop,
-          scrollbar,
-          refreshScrollbar,
-        });
-      } else {
-        this.instances.push({
-          holder,
-          select,
-          opener,
-          drop,
-        });
-      }
+      this.instances.push({ holder, select, opener });
       this.bindNativeSelect(select, opener);
     });
+  }
+
+  buildCustomDrop(instance) {
+    const { holder, select } = instance;
+    const drop = this.buildDropDown();
+
+    if (this.dropInBody) {
+      document.body.appendChild(drop);
+    } else {
+      holder.appendChild(drop);
+    }
+
+    instance.drop = drop;
+
+    const content = this.buildContentHolder();
+    drop.appendChild(content);
+
+    const list = this.buildOptionsList(select);
+    content.appendChild(list);
+
+    const hasScrollbar = this.updateDropHeight(content);
+
+    if (hasScrollbar) {
+      const scrollbar = this.buildScrollbar();
+      drop.appendChild(scrollbar);
+
+      drop.classList.add(this.activeScrollbar);
+      instance.refreshScrollbar = this.initScrollbar(content, scrollbar);
+    }
   }
 
   buildOpener(select) {
@@ -170,32 +159,33 @@ export default class CustomSelect {
         const select = holder.querySelector("select");
         const isActive = holder.classList.contains(this.activeClass);
 
-        this.updateSelectMode(select);
         this.closeAll();
 
-        if (!isActive) {
-          const instance = this.instances.find((i) => i.holder === holder);
+        if (isActive) return;
 
-          if (!instance) return;
+        this.updateSelectMode(select);
 
-          if (this.nativeSelectOnMobile && this.isTouchDevice()) {
-            if (typeof instance.select.showPicker === "function") {
-              instance.select.showPicker();
-            } else {
-              instance.select.focus();
-              instance.select.click();
-            }
+        const instance = this.instances.find((i) => i.holder === holder);
+        const nativeDrop = this.nativeSelectOnMobile && this.isTouchDevice();
 
-            return;
+        if (!instance) return;
+
+        if (nativeDrop) {
+          if (typeof instance.select.showPicker === "function") {
+            instance.select.showPicker();
+          } else {
+            instance.select.focus();
+            instance.select.click();
           }
-
-          this.updateDropPosition(instance);
-
-          holder.classList.add(this.activeClass);
-          instance.drop.classList.add(this.activeClass);
-
-          instance.refreshScrollbar?.();
+          return;
         }
+
+        this.buildCustomDrop(instance);
+        this.updateDropPosition(instance);
+
+        holder.classList.add(this.activeClass);
+        instance.drop.classList.add(this.activeClass);
+        instance.refreshScrollbar?.();
 
         return;
       }
@@ -316,9 +306,29 @@ export default class CustomSelect {
 
   closeAll() {
     this.instances.forEach((instance) => {
-      instance.holder.classList.remove(this.activeClass);
-      instance.drop.classList.remove(this.activeClass);
+      this.removeCustomDrop(instance);
     });
+  }
+
+  removeCustomDrop(instance) {
+    if (!instance.drop) return;
+
+    const drop = instance.drop;
+
+    instance.drop = null;
+    instance.refreshScrollbar = null;
+    instance.holder.classList.remove(this.activeClass, this.flippedClass);
+    drop.classList.remove(this.activeClass);
+
+    const hasTransition = getComputedStyle(drop).transitionDuration !== "0s";
+
+    if (hasTransition) {
+      drop.addEventListener("transitionend", () => drop.remove(), {
+        once: true,
+      });
+    } else {
+      drop.remove();
+    }
   }
 
   updateDropPosition(instance) {
@@ -378,9 +388,10 @@ export default class CustomSelect {
   destroy() {
     document.removeEventListener("click", this.handleClick);
 
-    this.instances.forEach(({ holder, select, opener, drop }) => {
+    this.closeAll();
+
+    this.instances.forEach(({ holder, select, opener }) => {
       opener.remove();
-      drop.remove();
       select.classList.remove(this.hiddenClass, this.nativeSelectClass);
       holder.classList.remove(this.activeClass, this.flippedClass);
     });
