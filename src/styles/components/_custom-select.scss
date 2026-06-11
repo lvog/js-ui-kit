@@ -41,6 +41,11 @@
     position: relative;
     cursor: pointer;
 
+    .js-select-disabled & {
+      background: var(--color-light-gray);
+      pointer-events: none;
+    }
+
     .js-drop-active & {
       &::before {
         transform: translateY(-50%) rotate(-180deg);
@@ -119,6 +124,11 @@
 
     &.js-option-selected {
       background: var(--color-light-gray);
+    }
+
+    &.js-option-disabled {
+      opacity: 0.5;
+      pointer-events: none;
     }
   }
 

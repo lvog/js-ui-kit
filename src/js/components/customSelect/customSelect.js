@@ -19,6 +19,8 @@ export default class CustomSelect {
     this.hiddenOptionClass = "hideme";
     this.activeScrollbar = "js-scroll-active";
     this.nativeSelectClass = "js-select-native";
+    this.disabledSelectClass = "js-select-disabled";
+    this.disabledOptionClass = "js-option-disabled";
 
     this.holders = document.querySelectorAll(`.${this.holderSelector}`);
 
@@ -51,6 +53,7 @@ export default class CustomSelect {
 
       this.instances.push({ holder, select, opener });
       this.bindNativeSelect(select, opener);
+      this.disabledSelect(holder, select);
     });
   }
 
@@ -130,6 +133,10 @@ export default class CustomSelect {
         option.classList.add(`${this.optionClass}-${this.hiddenOptionClass}`);
       }
 
+      if (item.disabled) {
+        option.classList.add(this.disabledOptionClass);
+      }
+
       option.classList.add(this.optionClass);
       option.textContent = item.textContent;
       option.dataset.value = item.value;
@@ -158,6 +165,8 @@ export default class CustomSelect {
         const holder = opener.closest(`.${this.holderSelector}`);
         const select = holder.querySelector("select");
         const isActive = holder.classList.contains(this.activeClass);
+
+        if (holder.classList.contains(this.disabledSelectClass)) return;
 
         this.closeAll();
 
@@ -191,6 +200,10 @@ export default class CustomSelect {
       }
 
       if (option) {
+        if (option.classList.contains(this.disabledOptionClass)) {
+          return;
+        }
+
         this.selectOption(option);
         this.closeAll();
 
@@ -282,6 +295,12 @@ export default class CustomSelect {
     }
     select.classList.remove(this.nativeSelectClass);
     select.classList.add(this.hiddenClass);
+  }
+
+  disabledSelect(holder, select) {
+    if (select.disabled) {
+      holder.classList.add(this.disabledSelectClass);
+    }
   }
 
   selectOption(option) {
@@ -393,7 +412,11 @@ export default class CustomSelect {
     this.instances.forEach(({ holder, select, opener }) => {
       opener.remove();
       select.classList.remove(this.hiddenClass, this.nativeSelectClass);
-      holder.classList.remove(this.activeClass, this.flippedClass);
+      holder.classList.remove(
+        this.activeClass,
+        this.flippedClass,
+        this.disabledSelectClass,
+      );
     });
 
     this.instances = [];
