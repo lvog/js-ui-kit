@@ -6,6 +6,7 @@ export default class CustomSelect {
     this.dropInBody = options.dropInBody ?? false;
     this.nativeSelectOnMobile = options.nativeSelectOnMobile ?? true;
     this.keyboardNavigation = options.keyboardNavigation ?? false;
+    this.accessibility = options.accessibility ?? true;
 
     this.prefix = this.holderSelector.slice(1);
 
@@ -58,6 +59,7 @@ export default class CustomSelect {
       this.instances.push({ holder, select, opener });
       this.bindNativeSelect(select, opener);
       this.disabledSelect(holder, select);
+      this.addOpenerAria(opener);
     });
   }
 
@@ -78,6 +80,8 @@ export default class CustomSelect {
 
     const list = this.buildOptionsList(select);
     content.appendChild(list);
+
+    this.addDropAria(instance, list);
 
     const hasScrollbar = this.updateDropHeight(content);
 
@@ -152,6 +156,8 @@ export default class CustomSelect {
       option.dataset.value = item.value;
 
       list.appendChild(option);
+
+      this.addOptionAria(option, index, selectedIndex);
     });
 
     return list;
@@ -291,6 +297,39 @@ export default class CustomSelect {
     });
   }
 
+  addOpenerAria(opener) {
+    if (!this.accessibility) return;
+
+    opener.setAttribute("role", "combobox");
+    opener.setAttribute("aria-haspopup", "listbox");
+    opener.setAttribute("aria-expanded", "false");
+  }
+
+  addDropAria(instance, list) {
+    if (!this.accessibility) return;
+
+    const listId = `${this.prefix}-list-${this.instances.indexOf(instance)}`;
+
+    list.setAttribute("role", "listbox");
+    list.setAttribute("id", listId);
+    instance.opener.setAttribute("aria-controls", listId);
+    instance.opener.setAttribute("aria-expanded", "true");
+  }
+
+  addOptionAria(option, index, selectedIndex) {
+    if (!this.accessibility) return;
+
+    option.setAttribute("role", "option");
+    option.setAttribute(
+      "aria-selected",
+      index === selectedIndex ? "true" : "false",
+    );
+
+    if (option.classList.contains(this.disabledOptionClass)) {
+      option.setAttribute("aria-disabled", "true");
+    }
+  }
+
   initScrollbar(content, scrollbar) {
     let isDragging = false;
     let startY = 0;
@@ -397,6 +436,11 @@ export default class CustomSelect {
     currentSelected?.classList.remove(this.selectedClass);
 
     option.classList.add(this.selectedClass);
+
+    if (this.accessibility) {
+      currentSelected?.setAttribute("aria-selected", "false");
+      option.setAttribute("aria-selected", "true");
+    }
   }
 
   getFocusableIndex(options, selectedIndex) {
@@ -454,6 +498,11 @@ export default class CustomSelect {
   }
 
   removeCustomDrop(instance) {
+    if (this.accessibility) {
+      instance.opener.setAttribute("aria-expanded", "false");
+      instance.opener.removeAttribute("aria-controls");
+    }
+
     if (!instance.drop) return;
 
     const drop = instance.drop;
