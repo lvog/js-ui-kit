@@ -1,30 +1,32 @@
 export default class CustomSelect {
   constructor(options = {}) {
-    this.holderSelector = options.holderSelector || "js-select";
+    this.holderSelector = options.holderSelector || ".js-select";
     this.maxVisibleItems = options.maxVisibleItems || 5;
     this.scrollbarOffset = options.scrollbarOffset || 5;
     this.dropInBody = options.dropInBody ?? false;
     this.nativeSelectOnMobile = options.nativeSelectOnMobile ?? true;
     this.keyboardNavigation = options.keyboardNavigation ?? false;
 
-    this.openerClass = `${this.holderSelector}-opener`;
-    this.dropClass = `${this.holderSelector}-drop`;
-    this.contentClass = `${this.holderSelector}-content`;
-    this.scrollbarClass = `${this.holderSelector}-scrollbar`;
-    this.optionsListClass = `${this.holderSelector}-options-list`;
-    this.optionClass = `${this.holderSelector}-option`;
+    this.prefix = this.holderSelector.slice(1);
+
+    this.openerClass = `${this.prefix}-opener`;
+    this.dropClass = `${this.prefix}-drop`;
+    this.contentClass = `${this.prefix}-content`;
+    this.scrollbarClass = `${this.prefix}-scrollbar`;
+    this.optionsListClass = `${this.prefix}-options-list`;
+    this.optionClass = `${this.prefix}-option`;
     this.activeClass = "js-drop-active";
     this.selectedClass = "js-option-selected";
     this.focusedClass = "js-option-focused";
     this.flippedClass = "js-drop-flipped";
-    this.hiddenClass = "js-hidden";
+    this.hiddenSelectClass = "js-hidden";
     this.hiddenOptionClass = "hideme";
     this.activeScrollbar = "js-scroll-active";
     this.nativeSelectClass = "js-select-native";
     this.disabledSelectClass = "js-select-disabled";
     this.disabledOptionClass = "js-option-disabled";
 
-    this.holders = document.querySelectorAll(`.${this.holderSelector}`);
+    this.holders = document.querySelectorAll(this.holderSelector);
 
     this.instances = [];
   }
@@ -84,7 +86,13 @@ export default class CustomSelect {
       drop.appendChild(scrollbar);
 
       drop.classList.add(this.activeScrollbar);
-      instance.refreshScrollbar = this.initScrollbar(content, scrollbar);
+
+      const { refreshScrollbar, destroyScrollbar } = this.initScrollbar(
+        content,
+        scrollbar,
+      );
+      instance.refreshScrollbar = refreshScrollbar;
+      instance.destroyScrollbar = destroyScrollbar;
     }
   }
 
@@ -164,7 +172,7 @@ export default class CustomSelect {
       const option = e.target.closest(`.${this.optionClass}`);
 
       if (opener) {
-        const holder = opener.closest(`.${this.holderSelector}`);
+        const holder = opener.closest(this.holderSelector);
         const select = holder.querySelector("select");
         const isActive = holder.classList.contains(this.activeClass);
 
@@ -320,6 +328,15 @@ export default class CustomSelect {
       isDragging = false;
     };
 
+    const destroyScrollbar = () => {
+      scrollbar.removeEventListener("pointerdown", handlePointerDown);
+      scrollbar.removeEventListener("pointermove", handlePointerMove);
+      scrollbar.removeEventListener("pointerup", handlePointerEnd);
+      scrollbar.removeEventListener("pointercancel", handlePointerEnd);
+      scrollbar.removeEventListener("lostpointercapture", handlePointerEnd);
+      content.removeEventListener("scroll", refreshScrollbar);
+    };
+
     scrollbar.addEventListener("pointerdown", handlePointerDown);
     scrollbar.addEventListener("pointermove", handlePointerMove);
     scrollbar.addEventListener("pointerup", handlePointerEnd);
@@ -327,7 +344,7 @@ export default class CustomSelect {
     scrollbar.addEventListener("lostpointercapture", handlePointerEnd);
     content.addEventListener("scroll", refreshScrollbar);
 
-    return refreshScrollbar;
+    return { refreshScrollbar, destroyScrollbar };
   }
 
   getScrollbarMetrics(content) {
@@ -348,12 +365,12 @@ export default class CustomSelect {
 
   updateSelectMode(select) {
     if (this.nativeSelectOnMobile && this.isTouchDevice()) {
-      select.classList.remove(this.hiddenClass);
+      select.classList.remove(this.hiddenSelectClass);
       select.classList.add(this.nativeSelectClass);
       return;
     }
     select.classList.remove(this.nativeSelectClass);
-    select.classList.add(this.hiddenClass);
+    select.classList.add(this.hiddenSelectClass);
   }
 
   disabledSelect(holder, select) {
@@ -400,26 +417,22 @@ export default class CustomSelect {
 
   getNextIndex(options, currentIndex, direction) {
     let index = currentIndex;
+    const total = options.length;
 
-    while (true) {
+    for (let i = 0; i < total; i++) {
       index += direction;
-
-      if (index < 0 || index >= options.length) {
-        return currentIndex;
-      }
+      if (index < 0 || index >= total) break;
 
       const option = options[index];
-
       const isDisabled = option.classList.contains(this.disabledOptionClass);
-
       const isHidden = option.classList.contains(
         `${this.optionClass}-${this.hiddenOptionClass}`,
       );
 
-      if (!isDisabled && !isHidden) {
-        return index;
-      }
+      if (!isDisabled && !isHidden) return index;
     }
+
+    return currentIndex;
   }
 
   highlightOption(options, index) {
@@ -445,6 +458,8 @@ export default class CustomSelect {
 
     const drop = instance.drop;
 
+    instance.destroyScrollbar?.();
+    instance.destroyScrollbar = null;
     instance.drop = null;
     instance.refreshScrollbar = null;
     instance.holder.classList.remove(this.activeClass, this.flippedClass);
@@ -524,7 +539,7 @@ export default class CustomSelect {
 
     this.instances.forEach(({ holder, select, opener }) => {
       opener.remove();
-      select.classList.remove(this.hiddenClass, this.nativeSelectClass);
+      select.classList.remove(this.hiddenSelectClass, this.nativeSelectClass);
       holder.classList.remove(
         this.activeClass,
         this.flippedClass,
